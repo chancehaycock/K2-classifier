@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PYTHONFILE=intro.py
+PYTHONFILE=introduction/intro.py
 
 echo "Version:"
 python --version
