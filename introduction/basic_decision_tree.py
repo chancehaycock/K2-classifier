@@ -70,4 +70,5 @@ errors = []
 for i in range(num_points):
     errors.append(abs(val_y_array[i] - val_predictions[i]))
 plt.scatter(x, errors, c='r', s=0.5)
-plt.show()
+plt.savefig("basic_decision_tree_errors.png")
+plt.close()
