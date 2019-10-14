@@ -1,6 +1,7 @@
 #!/bin/bash
 
-PYTHONFILE=introduction/intro.py
+echo "Enter name of .py file to run: "
+read PYTHONFILE
 
 echo "Version:"
 python --version
