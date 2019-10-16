@@ -10,16 +10,19 @@ campaign_num = 5
 # Specifies path directory.
 use_remote = False
 
-def get_hdul(use_remote):
+def get_hdul(use_remote, kepler_id):
+	kepler_num = kepler_id[4:13]
+	campaign_num = kepler_id[16:17]
 	path_to_dir=""
 	if (use_remote):
 		path_to_dir = "/storage/astro2/phujzc/k2sc_data/campaign_{}".format(campaign_num)
 	else:
 		path_to_dir = "/Users/chancehaycock/dev/machine_learning/px402/k2sc_data/campaign_{}".format(campaign_num)
-	return fits.open('{}/hlsp_k2sc_k2_llc_228682327-c05_kepler_v2_lc.fits'.format(path_to_dir))
+	return fits.open('{}/hlsp_k2sc_k2_llc_{}-c0{}_kepler_v2_lc.fits'.format(path_to_dir, kepler_num, campaign_num))
 
-# Open hdul object
-hdul = get_hdul(use_remote)
+# Open hdul object (Example)
+hdul = get_hdul(use_remote, "K2SC228682327-c05")
+
 
 ### The seven columns of data per lightcurve:
 # - quality  : Original K2 photometry pipeline quality flags
@@ -127,7 +130,7 @@ def remove_nans(times, flux):
 
 # ==================== Main =======================
 
-times = [times[i] - times[0] for i in range(len(times))]
+#times = [times[i] - times[0] for i in range(len(times))]
 # Initial Plot
 plot_lightcurve(times, flux_c, "title", "filename1")
 
