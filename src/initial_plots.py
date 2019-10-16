@@ -1,21 +1,22 @@
 from astropy.io import fits
 from astropy.stats import LombScargle
 import matplotlib.pyplot as plt
+import numpy as np
 
 # PDC (1) or SAP (2)
 lc_type = 1
 # Choose campaign number
 campaign_num = 5
 # Specifies path directory.
-use_remote = True
+use_remote = False
 
 def get_hdul(use_remote):
 	path_to_dir=""
 	if (use_remote):
 		path_to_dir = "/storage/astro2/phujzc/k2sc_data/campaign_{}".format(campaign_num)
 	else:
-		path_to_dir = "~/dev/machine_learning/px402/k2sc_data/campaign_{}".format(campaign_num)
-	return fits.open('{}/hlsp_k2sc_k2_llc_211923232-c05_kepler_v2_lc.fits'.format(path_to_dir))
+		path_to_dir = "/Users/chancehaycock/dev/machine_learning/px402/k2sc_data/campaign_{}".format(campaign_num)
+	return fits.open('{}/hlsp_k2sc_k2_llc_228682327-c05_kepler_v2_lc.fits'.format(path_to_dir))
 
 # Open hdul object
 hdul = get_hdul(use_remote)
@@ -94,33 +95,48 @@ hdul = get_hdul(use_remote)
 # - KER_HPS1: best-fit value of the parameters of GP covariance function.
 
 flux = hdul[lc_type].data['flux']
+trend_t = hdul[lc_type].data['trtime']
+flux_c = flux + trend_t - np.median(trend_t)
 times = hdul[lc_type].data['time']
 
 def plot_lightcurve(times, flux, title, filename):
-	plt.scatter(times, flux, s=0.1)
-	plt.xlabel("Flux")
-	plt.ylabel("Time")
+#	plt.scatter(times, flux, s=0.1)
+	plt.plot(times, flux, linewidth=0.5)
+	plt.xlabel("Time")
+	plt.ylabel("Flux")
 	plt.title("{}_lc".format(title))
 	plt.savefig("{}_lc.png".format(filename))
 	plt.close()
 
 def plot_pow_spectrum(frequency, power, title, filename):
-	plt.plot(frequency, power, linewidth=5)
+	plt.plot(frequency, power, linewidth=0.5)
 	plt.xlabel("Frequency")
 	plt.ylabel("Power")
 	plt.title("{}_ps".format(title))
 	plt.savefig("{}_ps.png".format(filename))
 	plt.close()
 
-plot_lightcurve(times, flux, "title", "filename1")
+def remove_nans(times, flux):
+	cleaned_times = []
+	cleaned_flux = []
+	for i in range(len(times)):
+		if (not np.isnan(flux_c[i])):
+			cleaned_times.append(times[i])
+			cleaned_flux.append(flux_c[i])
+	return cleaned_times, cleaned_flux
+
+# ==================== Main =======================
+
+times = [times[i] - times[0] for i in range(len(times))]
+# Initial Plot
+plot_lightcurve(times, flux_c, "title", "filename1")
 
 # Lomb Scargle Work
-
-print(times)
-print(flux)
-
-frequency, power =  LombScargle(times, flux, 0.1).autopower()
+cleaned_times, cleaned_flux = remove_nans(times, flux)
+frequency, power =  LombScargle(cleaned_times, cleaned_flux).autopower()
 plot_pow_spectrum(frequency, power, "Title", "filename2")
-print(frequency)
-print(power)
 
+index = np.argmax(power)
+period = 1.0 / frequency[index]
+folded_times = [cleaned_times[i]%period for i in range(len(cleaned_times))]
+plot_lightcurve(folded_times, cleaned_flux, "", "filename3")
