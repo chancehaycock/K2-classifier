@@ -1,29 +1,3 @@
-from astropy.io import fits
-from astropy.stats import LombScargle
-import matplotlib.pyplot as plt
-import numpy as np
-
-# PDC (1) or SAP (2)
-lc_type = 1
-# Choose campaign number
-campaign_num = 5
-# Specifies path directory.
-use_remote = False
-
-def get_hdul(use_remote, kepler_id):
-	kepler_num = kepler_id[4:13]
-	campaign_num = kepler_id[16:17]
-	path_to_dir=""
-	if (use_remote):
-		path_to_dir = "/storage/astro2/phujzc/k2sc_data/campaign_{}".format(campaign_num)
-	else:
-		path_to_dir = "/Users/chancehaycock/dev/machine_learning/px402/k2sc_data/campaign_{}".format(campaign_num)
-	return fits.open('{}/hlsp_k2sc_k2_llc_{}-c0{}_kepler_v2_lc.fits'.format(path_to_dir, kepler_num, campaign_num))
-
-# Open hdul object (Example)
-hdul = get_hdul(use_remote, "K2SC228682327-c05")
-
-
 ### The seven columns of data per lightcurve:
 # - quality  : Original K2 photometry pipeline quality flags
 # - cadence  : observation cadences
@@ -97,29 +71,40 @@ hdul = get_hdul(use_remote, "K2SC228682327-c05")
 # - KER_EQN: equation of covariance function
 # - KER_HPS1: best-fit value of the parameters of GP covariance function.
 
-flux = hdul[lc_type].data['flux']
-trend_t = hdul[lc_type].data['trtime']
-flux_c = flux + trend_t - np.median(trend_t)
-times = hdul[lc_type].data['time']
+from astropy.io import fits
+from astropy.stats import LombScargle
+import matplotlib.pyplot as plt
+import numpy as np
 
-def plot_lightcurve(times, flux, title, filename):
-#	plt.scatter(times, flux, s=0.1)
-	plt.plot(times, flux, linewidth=0.5)
-	plt.xlabel("Time")
-	plt.ylabel("Flux")
-	plt.title("{}_lc".format(title))
-	plt.savefig("{}_lc.png".format(filename))
-	plt.close()
+# Use this to toggle between remote/local data sets
+use_remote = False
 
-def plot_pow_spectrum(frequency, power, title, filename):
-	plt.plot(frequency, power, linewidth=0.5)
-	plt.xlabel("Frequency")
-	plt.ylabel("Power")
-	plt.title("{}_ps".format(title))
-	plt.savefig("{}_ps.png".format(filename))
-	plt.close()
+def get_hdul(use_remote, kepler_id):
+	kepler_num = kepler_id[4:13]
+	campaign_num = kepler_id[16:17]
+	path_to_dir=""
+	if (use_remote):
+		path_to_dir = "/storage/astro2/phujzc/k2sc_data/campaign_{}".format(campaign_num)
+	else:
+		path_to_dir = "/Users/chancehaycock/dev/machine_learning/px402/k2sc_data/campaign_{}".format(campaign_num)
+	return fits.open('{}/hlsp_k2sc_k2_llc_{}-c0{}_kepler_v2_lc.fits'.format(path_to_dir, kepler_num, campaign_num))
 
-def remove_nans(times, flux):
+def get_lightcurve(hdul, lc_type):
+	if (lc_type == "PDC"):
+		lc_type_indx = 1
+	elif (lc_type == "SAP"):
+		lc_type_index = 2
+	else:
+		print("Invalid lightcurve type passed. Choose PDC or SAP.")
+		return
+	flux = hdul[lc_type_indx].data['flux']
+	trend_t = hdul[lc_type_indx].data['trtime']
+	# Note that this is the detrended data as described above.
+	flux_c = flux + trend_t - np.median(trend_t)
+	times = hdul[lc_type_indx].data['time']
+	return times, flux_c
+
+def remove_nans(times, flux_c):
 	cleaned_times = []
 	cleaned_flux = []
 	for i in range(len(times)):
@@ -128,18 +113,49 @@ def remove_nans(times, flux):
 			cleaned_flux.append(flux_c[i])
 	return cleaned_times, cleaned_flux
 
+def scatter_plot(times, flux, title, filename):
+	plt.scatter(times, flux, s=0.1)
+	plt.xlabel("Time")
+	plt.ylabel("Flux")
+	plt.title("{}".format(title))
+	plt.savefig("{}.png".format(filename))
+	plt.close()
+
+def line_plot(frequency, power, title, filename):
+	plt.plot(frequency, power, linewidth=0.5)
+	plt.xlabel("Frequency")
+	plt.ylabel("Power")
+	plt.title("{}".format(title))
+	plt.savefig("{}.png".format(filename))
+	plt.close()
+
 # ==================== Main =======================
 
-#times = [times[i] - times[0] for i in range(len(times))]
-# Initial Plot
-plot_lightcurve(times, flux_c, "title", "filename1")
+def main():
+	# Open hdul object from local directory. (Example)
+	hdul = get_hdul(use_remote, "K2SC228682327-c05")
 
-# Lomb Scargle Work
-cleaned_times, cleaned_flux = remove_nans(times, flux)
-frequency, power =  LombScargle(cleaned_times, cleaned_flux).autopower()
-plot_pow_spectrum(frequency, power, "Title", "filename2")
+	# Fetch times and observations from PDC flux.
+	times, flux_c = get_lightcurve(hdul, "PDC")
 
-index = np.argmax(power)
-period = 1.0 / frequency[index]
-folded_times = [cleaned_times[i]%period for i in range(len(cleaned_times))]
-plot_lightcurve(folded_times, cleaned_flux, "", "filename3")
+	# Initial plot of lightcurve
+	line_plot(times, flux_c, "title", "lc_test_plot")
+
+	# Remove nans
+	# TODO - Remove from current array as opposed to copying.
+	cleaned_times, cleaned_flux = remove_nans(times, flux_c)
+	frequency, power =  LombScargle(cleaned_times, cleaned_flux).autopower()
+
+	# Lomb Scargle Plot
+	line_plot(frequency, power, "Title", "ls_test_plot")
+
+	# Phase Fold Test
+	index = np.argmax(power)
+	period = 1.0 / frequency[index]
+	folded_times = [cleaned_times[i]%period for i in range(len(cleaned_times))]
+	scatter_plot(folded_times, cleaned_flux, "", "phase_fold_test_plot")
+
+
+if __name__ == "__main__":
+	main()
+

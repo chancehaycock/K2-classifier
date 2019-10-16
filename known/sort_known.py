@@ -14,7 +14,7 @@ import csv
 
 def write_to_file(kepler_id, campaign_num, star_type):
 	fout = open("{}_{}.txt".format(campaign_num, star_type), "a+")
-	fout.write("{}\n".format(kepler_id))
+	fout.write("K2SC{}-c0{}\n".format(kepler_id, campaign_num))
 	fout.close()
 
 with open("armstrong_0_to_4.csv") as knownfile:
