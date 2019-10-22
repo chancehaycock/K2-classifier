@@ -73,8 +73,10 @@
 
 from astropy.io import fits
 from astropy.stats import LombScargle
+from astropy.table import Table
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 # Use this to toggle between remote/local data sets
 use_remote = False

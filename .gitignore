@@ -2,5 +2,6 @@ k2sc_data/*
 .DS_Store 
 *.png
 src/__pycache__/
-
-
+*.fits
+*.csv
+*.xlsx
