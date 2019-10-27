@@ -74,6 +74,7 @@
 from astropy.io import fits
 from astropy.stats import LombScargle
 from astropy.table import Table
+import csv
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -130,6 +131,12 @@ def line_plot(frequency, power, title, filename):
 	plt.title("{}".format(title))
 	plt.savefig("{}.png".format(filename))
 	plt.close()
+
+def campaign_is_known(campaign_num):
+	known_campaigns = [0, 1, 2, 3, 4]
+	if campaign_num in known_campaigns:
+		return True
+	return False
 
 # ==================== Main =======================
 
