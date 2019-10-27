@@ -31,8 +31,11 @@ def make_unique_gaia_csv(search_radius, campaign_num):
 					epic_count += 1
 					continue
 				else:
+					# Now chooses unique row fro a particular epic by looking at
+					# the GAIA mean magnitude.
 					temp_df = pd.DataFrame(columns=df.columns)
-					wanted_index = epic_df.apply(lambda x: x.isnull().sum(), axis='columns').idxmin(0)
+					gaia_mags_df = epic_df['phot_g_mean_mag']
+					wanted_index = gaia_mags_df.idxmin() 
 					temp_df = temp_df.append(epic_df.loc[wanted_index])
 					temp_df.to_csv(file, header=False, index=None)
 					print("Added EPIC {} to CSV File. Was not unique.".format(epic))
@@ -46,6 +49,7 @@ def gaia_data_to_csv(search_radius, campaign_num):
 		print("Fits file imported.")
 		df = pd.DataFrame(data[1].data)
 		with open('/Users/chancehaycock/dev/machine_learning/px402/cross_match_data/gaia/original_gaia_campaign_{}_data.csv'.format(campaign_num), 'a+') as file:
+			pd.DataFrame(columns=df.columns).to_csv(file, index=None)
 			print("Reducing dataframe...")
 			df = df[df['k2_campaign_str'] == '{}'.format(campaign_num)]
 			df.to_csv(file, header=False, index=None)
@@ -62,7 +66,7 @@ def main():
 #	print("Unique EPICS from Campaign 5: ", count5)
 
 	# Use this function to check original GAIA data from a specific campaign. i.e. not unique.
-#	gaia_data_to_csv(1, 5)
+#	gaia_data_to_csv(1, 3)
 
 if __name__ == '__main__':
 	main()
