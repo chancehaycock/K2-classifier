@@ -12,7 +12,8 @@ for type in star_types:
 		hdul = get_hdul(False, plot_ids[i])
 		times, flux = get_lightcurve(hdul, "PDC")
 		ax.plot(times[:200], flux[:200]/1000, linewidth=0.5)
-	fig.suptitle("Known {} stars from c-0{} (Raw K2SC PDC Data ~ First 100 hours)".format(type, campaign_num))
+	fig.suptitle("Known {} stars from c-0{} (Raw K2SC PDC Data ~ First 100 hours)"\
+	             .format(type, campaign_num))
 	plt.subplots_adjust(wspace=0.5, hspace=0.5)
 	fig.text(0.5, 0.02, 'Time (Days)', ha='center')
 	fig.text(0.02, 0.5, 'Flux / (10^3)', va='center', rotation='vertical')

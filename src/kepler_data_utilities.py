@@ -81,16 +81,19 @@ import pandas as pd
 
 # Use this to toggle between remote/local data sets
 use_remote = False
+px402_dir = '/Users/chancehaycock/dev/machine_learning/px402'
 
 def get_hdul(use_remote, kepler_id):
 	kepler_num = kepler_id[4:13]
 	campaign_num = kepler_id[16:17]
 	path_to_dir=""
 	if (use_remote):
-		path_to_dir = "/storage/astro2/phujzc/k2sc_data/campaign_{}".format(campaign_num)
+		path_to_dir = "/storage/astro2/phujzc/k2sc_data/campaign_{}"\
+		              .format(campaign_num)
 	else:
-		path_to_dir = "/Users/chancehaycock/dev/machine_learning/px402/k2sc_data/campaign_{}".format(campaign_num)
-	return fits.open('{}/hlsp_k2sc_k2_llc_{}-c0{}_kepler_v2_lc.fits'.format(path_to_dir, kepler_num, campaign_num))
+		path_to_dir = "{}/k2sc_data/campaign_{}".format(px402_dir, campaign_num)
+	return fits.open('{}/hlsp_k2sc_k2_llc_{}-c0{}_kepler_v2_lc.fits'\
+	                 .format(path_to_dir, kepler_num, campaign_num))
 
 def get_lightcurve(hdul, lc_type):
 	if (lc_type == "PDC"):
@@ -142,28 +145,28 @@ def campaign_is_known(campaign_num):
 
 def main():
 	# Open hdul object from local directory. (Example)
-	hdul = get_hdul(use_remote, "K2SC228682327-c05")
+#	hdul = get_hdul(use_remote, "K2SC228682327-c05")
 
 	# Fetch times and observations from PDC flux.
-	times, flux_c = get_lightcurve(hdul, "PDC")
+#	times, flux_c = get_lightcurve(hdul, "PDC")
 
 	# Initial plot of lightcurve
-	line_plot(times, flux_c, "title", "lc_test_plot")
+#	line_plot(times, flux_c, "title", "lc_test_plot")
 
 	# Remove nans
 	# TODO - Remove from current array as opposed to copying.
-	cleaned_times, cleaned_flux = remove_nans(times, flux_c)
-	frequency, power =  LombScargle(cleaned_times, cleaned_flux).autopower()
+#	cleaned_times, cleaned_flux = remove_nans(times, flux_c)
+#	frequency, power =  LombScargle(cleaned_times, cleaned_flux).autopower()
 
 	# Lomb Scargle Plot
-	line_plot(frequency, power, "Title", "ls_test_plot")
+#	line_plot(frequency, power, "Title", "ls_test_plot")
 
 	# Phase Fold Test
-	index = np.argmax(power)
-	period = 1.0 / frequency[index]
-	folded_times = [cleaned_times[i]%period for i in range(len(cleaned_times))]
-	scatter_plot(folded_times, cleaned_flux, "", "phase_fold_test_plot")
-
+#	index = np.argmax(power)
+#	period = 1.0 / frequency[index]
+#	folded_times = [cleaned_times[i]%period for i in range(len(cleaned_times))]
+#	scatter_plot(folded_times, cleaned_flux, "", "phase_fold_test_plot")
+	print("Compiled")
 
 if __name__ == "__main__":
 	main()

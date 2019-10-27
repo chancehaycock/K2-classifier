@@ -1,19 +1,25 @@
 from kepler_data_utilities import *
 
 # Example multiple entry EPICS from campaign 3.
-test_epics = [205898099, 205905261, 205906121, 205908778, 205910844, 205912245, 205926404, 205940923, 205941422]
+test_epics = [205898099, 205905261, 205906121, 205908778, 205910844, 205912245,
+              205926404, 205940923, 205941422]
 
-# Some table entries appear to have multiple entries for the same EPIC. Some EPICs appear in more than one campaign.
-# Also, some rows are much more heavily populated than others. The exact reasoning is not completely known at this
-# moment in time. The below function creates a csv file unique entries chosen on availability.
-# Search radius is either 1 or 20 arcsec. Call make_unique_gaia_csv(1) for 1 arcsec radius.
-# Returns number of unique EPICS.
+gaia_dir = '/Users/chancehaycock/dev/machine_learning/px402/cross_match_data/gaia' 
+
+# Some table entries appear to have multiple entries for the same EPIC. Some
+# EPICs appear in more than one campaign. Also, some rows are much more heavily
+# populated than others. The exact reasoning is not completely known at this
+# moment in time. The below function creates a csv file unique entries chosen on
+# availability. Search radius is either 1 or 20 arcsec. Call
+# make_unique_gaia_csv(1) for 1 arcsec radius. Returns number of unique EPICS.
 def make_unique_gaia_csv(search_radius, campaign_num):
 	# Open file from 1 arsec search radius
-	with fits.open('/Users/chancehaycock/dev/machine_learning/px402/cross_match_data/gaia/k2_dr2_{}arcsec.fits'.format(search_radius)) as data:
+	with fits.open('{}/k2_dr2_{}arcsec.fits'\
+	               .format(gaia_dir, search_radius)) as data:
 		print("Fits file imported.")
 		df = pd.DataFrame(data[1].data)
-		with open('/Users/chancehaycock/dev/machine_learning/px402/cross_match_data/gaia/unique_gaia_campaign_{}_data.csv'.format(campaign_num), 'a+') as file:
+		with open('{}/unique_gaia_campaign_{}_data.csv'\
+		          .format(gaia_dir, campaign_num), 'a+') as file:
 			# Initialise new dataframe object with same columns.
 			print("Columns added to CSV File.")
 			pd.DataFrame(columns=df.columns).to_csv(file, index=None)
@@ -45,10 +51,12 @@ def make_unique_gaia_csv(search_radius, campaign_num):
 
 def gaia_data_to_csv(search_radius, campaign_num):
 	# Open file from 1 arsec search radius
-	with fits.open('/Users/chancehaycock/dev/machine_learning/px402/cross_match_data/gaia/k2_dr2_{}arcsec.fits'.format(search_radius)) as data:
+	with fits.open('{}/gaia/k2_dr2_{}arcsec.fits'\
+	               .format(gaia_dir, search_radius)) as data:
 		print("Fits file imported.")
 		df = pd.DataFrame(data[1].data)
-		with open('/Users/chancehaycock/dev/machine_learning/px402/cross_match_data/gaia/original_gaia_campaign_{}_data.csv'.format(campaign_num), 'a+') as file:
+		with open('{}/gaia/original_gaia_campaign_{}_data.csv'\
+		          .format(gaia_dir, campaign_num), 'a+') as file:
 			pd.DataFrame(columns=df.columns).to_csv(file, index=None)
 			print("Reducing dataframe...")
 			df = df[df['k2_campaign_str'] == '{}'.format(campaign_num)]
@@ -65,8 +73,10 @@ def main():
 #	print("Unique EPICS from Campaign 4: ", count4)
 #	print("Unique EPICS from Campaign 5: ", count5)
 
-	# Use this function to check original GAIA data from a specific campaign. i.e. not unique.
+	# Use this function to check original GAIA data from a specific campaign.
+	# i.e. not unique.
 #	gaia_data_to_csv(1, 3)
+	print("Compiled.")
 
 if __name__ == '__main__':
 	main()
