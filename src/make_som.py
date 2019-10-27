@@ -15,13 +15,14 @@ def make_2D_SOM(campaign_num):
 	df = df.dropna()
 	# Make copy of data frame without string entries (class) so that we can 
 	# convert it to a numpy array
-	df_without_class = df.drop("Class", axis=1)
+	if known:
+		df_without_class = df.drop("Class", axis=1)
 	# Variables needed for SOM object
 	# Size of Kohonen Layer. 40x40 for visual. 1600x1 for RF
 	som_shape = [40, 40]
 	# Chose at complete random
 	n_iter = 20
-	# Number of features
+	# Number of features (Will be number of bins of phase folded lightcurve)
 	n_bins = 13
 	som_samples = df_without_class.to_numpy(dtype=np.float32)
 	# Remove EPICs from table. (NOT Necessary for model)
@@ -36,8 +37,8 @@ def make_2D_SOM(campaign_num):
 	som = SimpleSOMMapper(som_shape, n_iter, initialization_func=init)
 	som.train(som_samples)
 	map = som(som_samples)
-	map = [[float(map[i][j]) + np.random.normal(0, 0.3) for j in range(2)]\
-	                                             for i in range(len(map))] 
+	float_map = [[float(map[i][j]) + np.random.normal(0, 0.3) for j in range(2)]\
+	                                                   for i in range(len(map))] 
 	EA = []
 	EB = []
 	RRab = []
@@ -47,22 +48,22 @@ def make_2D_SOM(campaign_num):
 	Noise = []
 	# TODO Maybe use colour map instead.
 	# Function?
-	for i in range(len(map)):
+	for i in range(len(float_map)):
 		test_object = df.iloc[i]['Class'].split()[0]
 		if (test_object == 'EA'):
-			EA.append(map[i])
+			EA.append(float_map[i])
 		elif (test_object == 'EB'):
-			EB.append(map[i])
+			EB.append(float_map[i])
 		elif (test_object == 'RRab'):
-			RRab.append(map[i])
+			RRab.append(float_map[i])
 		elif (test_object == 'GDOR'):
-			GDOR.append(map[i])
+			GDOR.append(float_map[i])
 		elif (test_object == 'OTHPER'):
-			OTHPER.append(map[i])
+			OTHPER.append(float_map[i])
 		elif (test_object == 'DSCUT'):
-			DSCUT.append(map[i])
+			DSCUT.append(float_map[i])
 		elif (test_object == 'Noise'):
-			Noise.append(map[i])
+			Noise.append(float_map[i])
 		else:
 			print("Error - no such class.")
 	plt.scatter(*zip(*EA), s=1.5, c='r')
