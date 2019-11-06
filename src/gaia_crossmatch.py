@@ -1,3 +1,5 @@
+# Creates File: unique_gaia_campaign_{campaign)num}_data.csv
+
 from kepler_data_utilities import *
 
 # Example multiple entry EPICS from campaign 3.
