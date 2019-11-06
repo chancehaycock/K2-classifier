@@ -1,3 +1,6 @@
+# Opens files from the sources, period, non-period, gaia, known
+# and exports into a campaign_{campaign_num}_master_table_{details}.csv
+
 from kepler_data_utilities import *
 
 # The aim of this script is to to produce a CSV file per Campaign including all
@@ -19,12 +22,7 @@ from kepler_data_utilities import *
 # K2ID, Period1..6, Ratios, temp, r_est, abs_magnitude etc.
 
 # Array of features to be used (Example for now)
-gaia_features = ['epic_number',
-                 'r_est'  , 'r_lo'       , 'r_hi',
-                 'k2_teff', 'k2_tefferr1', 'k2_tefferr2',
-                 'k2_rad' , 'k2_raderr1' , 'k2_raderr2' ,
-                 'k2_mass', 'k2_masserr1', 'k2_masserr2',
-                 'k2_kepmag'] 
+gaia_features = ['epic_number', 'k2_teff', 'k2_rad', 'k2_mass', 'abs_magnitude'] 
 
 project_dir = "/Users/chancehaycock/dev/machine_learning/px402"
 
@@ -35,25 +33,31 @@ def create_table(campaign_num):
 		known_campaign = False
 
 	print("Loading Files...")
-	# Load Kepler ID's
-	kid_file = '{}/kepler_ids/k2sc_c{}_id.csv'.format(project_dir,
-	                                                  campaign_num)
-	kep_ids = open(kid_file, 'r')
-	# Load Data from the 3/4 sources
-	period_file = '{}/cross_match_data/gaia/sample_sjh_{}.csv'\
-	              .format(project_dir, campaign_num)
-	period_df = pd.read_csv(period_file)
 
+	# Load Data from the 3/4 sources
+	# 1) Period Data
+	period_file = '{}/periods/campaign_{}_finer_grid.csv'.format(project_dir, campaign_num)
+	period_df = pd.read_csv(period_file)
+	period_df = period_df[['epic_number', 'Period_1', 'Period_2']]
+	# Add columns for ratios.
+	period_df['amp_ratio_21'] = period_df['Period_2'] / period_df['Period_1']
+
+	# 2) Gaia Data
 	gaia_file = '{}/cross_match_data/gaia/unique_gaia_campaign_{}_data.csv'\
 	             .format(project_dir, campaign_num)
 	gaia_df = pd.read_csv(gaia_file, low_memory=False)
-	# non_period_file = ...
+	# Calculate abs_magnitude here. Calculated from gaia_magnitude.
+	gaia_df['abs_magnitude'] = 5.0 + gaia_df['phot_g_mean_mag']\
+	                         - np.log10(gaia_df['r_est']) 
+	# 3) Non Periodic Data
 
-	# Classes
+	#                      < Insert CSV File here>    
+
+	# 4) Classes
 	if known_campaign:
 		classes_file = '{}/known/armstrong_0_to_4.csv'.format(project_dir)
 		classes_df = pd.read_csv(classes_file)
-	print("Files Loaded.")
+	print("Files Loaded and values calculated. (Absolute magnitude and amplitude ratios)")
 
 	add_columns = True
 	for epic in period_df['epic_number']:
@@ -73,7 +77,7 @@ def create_table(campaign_num):
 		if known_campaign:
 			total_df = total_df.merge(sub_classes_df, how='left',
 			                          on='epic_number')
-		with open('{}/cross_match_data/gaia/campaign_{}_mixed_table.csv'\
+		with open('{}/tables/campaign_{}_master_table.csv'\
 		         .format(project_dir, campaign_num), 'a+') as file:
 			if (add_columns):
 				total_df.to_csv(file, index=None)
@@ -81,15 +85,14 @@ def create_table(campaign_num):
 			else:
 				total_df.to_csv(file, header=False, index=None)
 		print("Added EPIC {} to table.".format(epic))
-	kep_ids.close()
 	print("Table created.")
 
 def main():
 	# Creates table of campaign(x) EPICS with columns:
 	# period, etc...
-#	create_table(3)
+	create_table(3)
 #	create_table(4)
-	create_table(5)
+#	create_table(5)
 	print('Program complete.')
 
 if __name__ == "__main__":
