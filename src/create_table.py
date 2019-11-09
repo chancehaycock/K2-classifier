@@ -48,7 +48,7 @@ def create_table(campaign_num):
 	gaia_df = pd.read_csv(gaia_file, low_memory=False)
 	# Calculate abs_magnitude here. Calculated from gaia_magnitude.
 	gaia_df['abs_magnitude'] = 5.0 + gaia_df['phot_g_mean_mag']\
-	                         - np.log10(gaia_df['r_est']) 
+	                         - 5.0 * np.log10(gaia_df['r_est']) 
 	# 3) Non Periodic Data
 
 	#                      < Insert CSV File here>    
