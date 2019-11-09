@@ -5,3 +5,5 @@ src/__pycache__/
 *.fits
 *.csv
 *.xlsx
+*.txt
+
