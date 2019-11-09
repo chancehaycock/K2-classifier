@@ -155,11 +155,15 @@ def campaign_is_known(campaign_num):
 # Phasefolds a particular lightcurve. Returns an array tuples representing the 
 # phase folded lc points in [0, 1] x [0, 1].
 # The minimum point occurs at (0, 0).
-def phase_fold_lightcurve(epic_num, campaign_num, period, plot=True, delete_flags=True):
+def phase_fold_lightcurve(epic_num, campaign_num, period, plot=True,
+                          delete_flags=True, star_class=None):
+
 	hdul = get_hdul(use_remote, epic_num, campaign_num)
+
 	# By default chooses PDC
 	times, flux = get_lightcurve(hdul, delete_flags=delete_flags)
 	times -= times[0]
+
 	# Adjust Period to a phase between 0.0 and 1.0
 	phase = (times % period) / period
 	# Normalise lcurve so flux in [0.0, 1.0]
@@ -168,17 +172,19 @@ def phase_fold_lightcurve(epic_num, campaign_num, period, plot=True, delete_flag
 	max_flux = np.nanmax(normed_flux)
 	normed_flux /= max_flux
 
-	# Translate curve so that minimum value occurs at (0, 0)
-	phase_of_min_flux = phase[np.nanargmin(normed_flux)]
-	phase = (phase - phase_of_min_flux) % 1.0
+	star_types = ["RRab", "DSCUT", "EA", "EB", "GDOR"]
 
 	# Plot!
 	if (plot):
-		print("\t {}".format(period))
-		fig, (ax1, ax2) = plt.subplots(2, 1)
-		ax1.plot(times, flux, linewidth=0.3)
-		ax2.scatter(phase, normed_flux, s=0.2)
-		plt.show()
+		if star_class.split()[0] in star_types:
+			print("Plotting")
+			fig, (ax1, ax2) = plt.subplots(2, 1)
+			ax1.plot(times, flux, linewidth=0.3)
+			ax2.scatter(phase, normed_flux, s=0.2)
+			fig.suptitle("Automated Period: {}".format(period))
+			plot_dir = "{}/plots/phase_folds/".format(px402_dir)
+			plt.savefig("{}/{}_phase_fold_plot_{}_c{}.png"\
+			            .format(plot_dir, star_class, epic_num, campaign_num))
 
 	points = [(phase[i], normed_flux[i]) for i in range(len(phase))]
 	folded_lightcurve = [point for point in points if not np.isnan(point[1])]
@@ -194,9 +200,7 @@ def make_bin_columns(n_bins):
 # Maybe produce csv file of epicnumber, bin1, bin2, bin3, bin4.
 # This step should probably involve the scaling and normalistaion of the
 # lightcurve retreived form the previous step.
-def process_lcs_for_som(campaign_num, del_flags=True):
-#	test_array = [[206131351, 3, 0.604989832], [206143957, 3, 4.17346],
-#	              [206134477, 3, 8.168424456], [206047180, 3, 13.89769166]]
+def process_lcs_for_som(campaign_num, del_flags=True, write_to_csv=False, plot_known=False):
 
 	add_bin_columns = True
 	n_bins = 64
@@ -207,22 +211,27 @@ def process_lcs_for_som(campaign_num, del_flags=True):
 	data_file = '{}/tables/campaign_{}_master_table.csv'.format(px402_dir, campaign_num)
 	df = pd.read_csv(data_file)
 
-	with open('{}/som_bins/campaign_{}.csv'.format(px402_dir, campaign_num), 'a+') as file:
+	with open('{}/som_bins/campaign_{}_origin.csv'.format(px402_dir, campaign_num), 'a+') as file:
 		# Loop over lightcurves
 		for i in range(len(df['epic_number'])):
 			epic_num = int(df.iloc[i]['epic_number'])
 			period = df.iloc[i]['Period_1']
-			star_class = df.iloc[i]['Class']
+			star_class = str(df.iloc[i]['Class'])
 
 			if period < 20.0:
 				folded_lc = phase_fold_lightcurve(epic_num, campaign_num, period,
-				                                  plot=False, delete_flags=del_flags)
+				                                  plot=plot_known, delete_flags=del_flags,
+				                                  star_class=star_class)
 				phase = [folded_lc[i][0] for i in range(len(folded_lc))]
 				flux = [folded_lc[i][1] for i in range(len(folded_lc))]
 				bin_means, bin_edges, binnumber = binned_statistic(phase, flux,
 				                                  'mean', bins=n_bins)
 				bin_width = bin_edges[1] - bin_edges[0]
 				bin_centres = bin_edges[1:] - bin_width/2
+				min_bin_val = np.nanmin(bin_means)
+				min_bin_index = np.nanargmin(bin_means)
+				bin_means = np.array([bin_means[(i + min_bin_index)%n_bins] for i in range(n_bins)])
+				bin_means -= min_bin_val
 			else:
 				bin_means = np.empty(64) * np.nan 
 
@@ -230,11 +239,12 @@ def process_lcs_for_som(campaign_num, del_flags=True):
 			row['epic_number'] = epic_num
 			row['Class'] = star_class
 
-			if (add_bin_columns):
-				add_bin_columns = False
-				row.to_csv(file, index=None)
-			else:
-				row.to_csv(file, header=False, index=None)
+			if (write_to_csv):
+				if (add_bin_columns):
+					add_bin_columns = False
+					row.to_csv(file, index=None)
+				else:
+					row.to_csv(file, header=False, index=None)
 
 			if i%50 == 0:
 				print("{}%".format(float(100*i/16882)))
@@ -247,49 +257,48 @@ def process_lcs_for_som(campaign_num, del_flags=True):
 def main():
 	print("Running...")
 
-	# Examples of phase folding lightcurve from campaign 3
-	# 1) RRab
+#	# Examples of phase folding lightcurve from campaign 3
+#	# 1) RRab
 #	print("RRab:")
 #	print("\t Automated Period 1")
 #	phase_fold_lightcurve(206131351, 3, 0.604989832)
-	# 2) EA
+#	# 2) EA
 #	print("EA:")
 #	print("\t Automated Period 1")
 #	print("\t\t Deleted Outliers")
 #	phase_fold_lightcurve(206143957, 3, 3.692879976)
 #	print("\t\t Outliers Remain")
 #	phase_fold_lightcurve(206143957, 3, 3.692879976, delete_flags=False)
-	# Second best period
+#	# Second best period
 #	print("\t Automated Period 2")
 #	phase_fold_lightcurve(206143957, 3, 8.338349424)
-	# Chance judge by eye
+#	# Chance judge by eye
 #	print("\t Eye Period with outliers")
 #	phase_fold_lightcurve(206143957, 3, 4.25, delete_flags=False)
 #	print("\t Second Spreadsheet Period")
 #	phase_fold_lightcurve(206143957, 3, 4.17346)
-	# 3) EB
+#	# 3) EB
 #	print("EB:")
 #	print("\t Automated Period 1")
 #	phase_fold_lightcurve(206134477, 3, 8.168424456)
-	# Second best - seems multiple of 3 off.
+#	# Second best - seems multiple of 3 off.
 #	print("\t Automated Period 2")
 #	phase_fold_lightcurve(206134477, 3, 12.7891238)
-	# Chance judge by eye version
+#	# Chance judge by eye version
 #	print("\t Eye Period with Outliers")
 #	phase_fold_lightcurve(206134477, 3, 4.24, delete_flags=False)
-	# 4) DSCUT
+#	# 4) DSCUT
 #	print("DSCUT:")
 #	print("\t Automated Period 1")
 #	phase_fold_lightcurve(206047180, 3, 13.89769166)
 #	print("\t Automated Period 2")
 #	phase_fold_lightcurve(206047180, 3, 15.94297007)
-	# 4) GDOR
+#	# 4) GDOR
 #	print("GDOR")
 #	print("\t Automated Period 1")
 #	phase_fold_lightcurve(205993244, 3, 0.829789837)
 
-	process_lcs_for_som(3)
+	process_lcs_for_som(3, write_to_csv=False, plot_known=True)
 
 if __name__ == "__main__":
 	main()
-
