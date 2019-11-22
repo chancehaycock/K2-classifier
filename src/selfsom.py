@@ -38,7 +38,7 @@ class SimpleSOMMapper(object):
     the best matching Kohonen unit and a Gaussian neighborhood influence
     kernel.
     """
-    def __init__(self, kshape, niter, learning_rate=0.005,
+    def __init__(self, kshape, niter, learning_rate=0.01,
                  iradius=None, distance_metric=None, initialization_func=None):
         """
         Parameters
