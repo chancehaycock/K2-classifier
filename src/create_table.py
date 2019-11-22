@@ -36,7 +36,7 @@ def create_table(campaign_num):
 
 	# Load Data from the 3/4 sources
 	# 1) Period Data
-	period_file = '{}/periods/campaign_{}_finer_grid.csv'.format(project_dir, campaign_num)
+	period_file = '{}/periods/campaign_{}_flagged_on.csv'.format(project_dir, campaign_num)
 	period_df = pd.read_csv(period_file)
 	period_df = period_df[['epic_number', 'Period_1', 'Period_2']]
 	# Add columns for ratios.
@@ -77,7 +77,7 @@ def create_table(campaign_num):
 		if known_campaign:
 			total_df = total_df.merge(sub_classes_df, how='left',
 			                          on='epic_number')
-		with open('{}/tables/campaign_{}_master_table.csv'\
+		with open('{}/tables/campaign_{}_master_table_flagged_on.csv'\
 		         .format(project_dir, campaign_num), 'a+') as file:
 			if (add_columns):
 				total_df.to_csv(file, index=None)
