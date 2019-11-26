@@ -255,12 +255,16 @@ class SimpleSOMMapper(object):
 
         Returns
         -------
-        tuple: (row, column)
+        triple: (row, column, distance)
         """
         # TODO expose distance function as parameter
         loc = np.argmin(((self.K - sample) ** 2).sum(axis=2))
+		# XXX CHANCE HAS ADDED THIS LINE.
+        min_dist = np.min(((self.K - sample) ** 2).sum(axis=2))
+
         # assumes 2D Kohonen layer
-        return (np.divide(loc, self.kshape[1]).astype('int'), loc % self.kshape[1])
+        return (np.divide(loc, self.kshape[1]).astype('int'), loc % self.kshape[1],
+		        min_dist)
 
 
     def _forward_data(self, data):
