@@ -19,16 +19,24 @@ import scipy.stats
 
 def lc_statistics(campaign_num):
 	# First need to import lightcurve and remove the fitted polynomial
-	epics_file = '{}/periods/campaign_{}_flagged_on.csv'\
+	epics_file = '{}/periods/campaign_{}.csv'\
 	              .format(project_dir, campaign_num)
 	epics_df = pd.read_csv(epics_file)
 	epics_df = epics_df[['epic_number']]
 
+	binned_lc_df = pd.read_csv("{}/som_bins/campaign_{}.csv".format(project_dir,
+	                                                                campaign_num))
 	columns = ["epic_number", "lc_amplitude", "p2p_98", "p2p_mean", "stddev",
-	           "kurtosis", "skew", "iqr", "mad"]
+	           "kurtosis", "skew", "iqr", "mad", "max_binned_p2p", "mean_binned_p2p"]
+
 	df = pd.DataFrame(columns=columns)
 
 	for i in range(len(epics_df)):
+
+		# ===========================================
+		#             Lightcurve Statistics 
+		# ===========================================
+
 		epic_num = int(epics_df.iloc[i])
 
 		hdul = get_hdul(epic_num, campaign_num)
@@ -65,6 +73,22 @@ def lc_statistics(campaign_num):
 		# Median Absolute Deviation - Better with outliers
 		mad = scipy.stats.median_absolute_deviation(poly_flux)
 
+		# ===========================================
+		#             Binned Statistics 
+		# ===========================================
+		# This could be done in process_lightcurve, but we do it here for
+		# convenience and hence only create one extra csv file.
+
+		binned_values = binned_lc_df[binned_lc_df["epic_number"] == epic_num]
+		binned_values = binned_values.drop("epic_number", axis=1)\
+		                             .drop("Class", axis=1)\
+		                             .drop("Probability", axis=1)
+
+		diffs = np.diff(binned_values)
+		# XXX Should this be absolute difference????
+		max_binned_p2p = np.max(diffs)
+		mean_binned_p2p = np.mean(diffs)
+
 		# Add to files here. Only Prints for now.
 		df.loc[i] = np.zeros(len(columns))
 		df.loc[i]["epic_number"]  = int(epic_num)
@@ -76,10 +100,13 @@ def lc_statistics(campaign_num):
 		df.loc[i]["skew"]         = skew
 		df.loc[i]["iqr"]          = iqr
 		df.loc[i]["mad"]          = mad
+		df.loc[i]["max_binned_p2p"] = max_binned_p2p
+		df.loc[i]["mean_binned_p2p"] = mean_binned_p2p
 
 		# Give the user a progress bar
 		if i%50 == 0:
-			print("{}%".format(float(100*i/16882)))
+			size = len(epics_df)
+			print("{0:.2f}%".format(float(100*i/size)))
 
 		if (False):
 			print("\n==== Epic: {} ====".format(epic_num))
@@ -90,19 +117,21 @@ def lc_statistics(campaign_num):
 			print("Kurtosis  \t%4.3f" % kurtosis)
 			print("Skew      \t%4.3f" % skew)
 			print("IQR       \t%4.3f" % iqr)
-			print("MAD       \t%4.3f\n" % mad)
+			print("MAD       \t%4.3f" % mad)
+			print("binp2pmax \t%4.3f" % max_binned_p2p)
+			print("binp2pmean\t%4.3f\n" % mean_binned_p2p)
 
-#	print(df)
 	print("Converting dataframe to csv file...")
+
 	# Send Dataframe to CSV
 	with open("{}/non-periodic_statistics/lightcurve_statistics_c{}.csv"\
 	          .format(px402_dir, campaign_num), 'a+') as statfile:
-		df.to_csv(statfile)
+		df.to_csv(statfile, index=False)
 	print("Complete.")
-
 
 def main():
 	lc_statistics(3)
+	lc_statistics(4)
 
 if __name__ == "__main__":
 	main()
