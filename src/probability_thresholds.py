@@ -5,11 +5,11 @@
 
 from kepler_data_utilities import *
 
-def plot_probability_histograms(campaign_num):
+def plot_probability_histograms():
 	df = pd.read_csv("{}/known/armstrong_0_to_4.csv".format(px402_dir))
-	df = df[df["Campaign"] == campaign_num]
+	df = df[(df["Campaign"] == 3) | (df["Campaign"] == 4)]
 
-	star_types = ["  RRab", "    EA", "    EB", " DSCUT", "  GDOR"]
+	star_types = ["  RRab", "    EA", "    EB", " DSCUT", "  GDOR", "OTHPER", " Noise"]
 
 	#print(df[df["Class"] == "  RRab"])
 
@@ -18,13 +18,13 @@ def plot_probability_histograms(campaign_num):
 		class_df = df[df["Class"] == star_type]
 		for i in range(len(class_df["Class"])):
 			probabilities.append(class_df.iloc[i][star_type])
-		plt.hist(probabilities, bins=10)
+		plt.hist(probabilities, bins=50, cumulative=True, histtype='step')
 		plt.title("Classification Probabilities for {}".format(star_type.split()[0]))
 		plt.xlabel("Probability")
 		plt.ylabel("Count")
 		plt.xlim((0, 1))
-		plt.savefig("{}/plots/classification_probabilities_plots/{}_c{}.png"\
-		            .format(px402_dir, star_type.split()[0], campaign_num))
+		plt.savefig("{}/plots/classification_probabilities_plots/{}_c3and4_cumulative.png"\
+		            .format(px402_dir, star_type.split()[0]))
 		plt.close()
 
 
@@ -33,7 +33,9 @@ def plot_probability_histograms(campaign_num):
 # ===================
 
 def main():
-	plot_probability_histograms(3)
+	# By default, plots campaign 3 and 4 as those are 
+	# used for the training set.
+	plot_probability_histograms()
 
 if __name__ == "__main__":
 	main()
