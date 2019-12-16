@@ -1,4 +1,5 @@
 k2sc_data/*
+everest_data/*
 .DS_Store 
 *.png
 src/__pycache__/
@@ -6,4 +7,6 @@ src/__pycache__/
 *.csv
 *.xlsx
 *.txt
-
+*.eps
+plots/*
+log/*

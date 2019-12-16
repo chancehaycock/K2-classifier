@@ -1,289 +1,184 @@
 from kepler_data_utilities import *
 from selfsom import *
 
-# Classes
-# EA, EB, RRAB, DSCUT, GDOR, OTHPER, (NOISE)
-
-def make_2D_SOM_from_features(campaign_num):
-	known = campaign_is_known(campaign_num)
-
-	# Get SOM samples
-	df = pd.read_csv('{}/tables/campaign_{}_master_table_2_periods_ratio_test.csv'\
-	                 .format(px402_dir, campaign_num), 'r', delimiter=',')
-	# Remove any samples without complete entries.
-	df = df.dropna()
-	# Also remove any rows with their main period = 20.
-	df = df[(df['Period_1'] != 20.0) & (df['Period_2'] != 20.0)]
-	print(df)
-	# Make copy of data frame without string entries (class) so that we can 
-	# convert it to a numpy array
-	if known:
-		df_without_class = df.drop("Class", axis=1)
-	# Variables needed for SOM object
-	# Size of Kohonen Layer. 40x40 for visual. 1600x1 for RF
-	som_shape = [40, 40]
-	# Chose at complete random
-	n_iter = 50
-	# Number of features (Will be number of bins of phase folded lightcurve)
-	n_bins = len(df.columns) - 2
-	som_samples = df_without_class.to_numpy(dtype=np.float32)
-	# Remove EPICs from table. (NOT Necessary for model)
-	som_samples = np.delete(som_samples, [0], 1)
-
-	def init(som_samples):
-		return np.random.uniform(0, 2, size=(som_shape[0], som_shape[1], n_bins))
-
-	# Initialise and Plot
-	som = SimpleSOMMapper(som_shape, n_iter, initialization_func=init)
-	som.train(som_samples)
-	map = som(som_samples)
-	float_map = [[float(map[i][j]) + np.random.normal(0, 0.3) for j in range(2)]\
-	                                                   for i in range(len(map))] 
-	EA = []
-	EB = []
-	RRab = []
-	DSCUT = []
-	GDOR = []
-	OTHPER = []
-	Noise = []
-	# TODO Maybe use colour map instead.
-	# Function?
-	for i in range(len(float_map)):
-		test_object = df.iloc[i]['Class'].split()[0]
-		if (test_object == 'EA'):
-			EA.append(float_map[i])
-		elif (test_object == 'EB'):
-			EB.append(float_map[i])
-		elif (test_object == 'RRab'):
-			RRab.append(float_map[i])
-		elif (test_object == 'GDOR'):
-			GDOR.append(float_map[i])
-		elif (test_object == 'OTHPER'):
-			OTHPER.append(float_map[i])
-		elif (test_object == 'DSCUT'):
-			DSCUT.append(float_map[i])
-		elif (test_object == 'Noise'):
-			Noise.append(float_map[i])
-		else:
-			print("Error - no such class.")
-	plt.scatter(*zip(*EA), s=1.5, c='r', label='EA')
-	plt.scatter(*zip(*EB), s=1.5, c='b', label='EB')
-	plt.scatter(*zip(*RRab), s=1.5, c='g', label='RRab')
-	plt.scatter(*zip(*DSCUT), s=1.5, c='y', label='DSCUT')
-	plt.scatter(*zip(*GDOR), s=1.5, c='c', label='GDOR')
-	plt.scatter(*zip(*OTHPER), s=0.1, c='m', alpha=0.3)
-	print("Total classified stars: ", len(EA) + len(EB) + len(RRab)\
-	                                + len(DSCUT) + len(GDOR))
-	plt.xlabel("SOM X Pixel")
-	plt.ylabel("SOM Y Pixel")
-	plt.legend()
-	plt.show()
-
-
-def make_2D_SOM_from_lightcurve(campaign_num, plot_kohonen=False, plot_som=False):
-
-	known = campaign_is_known(campaign_num)
-
-	# ======================================
-	#                 TRAIN
-	# ======================================
-	# Requires a nice clean training set.
-	# We will do this by restricting this set to ones with sufficiently large
-	# probabilties.
-
-	# Need to first import the training set. Do that here and call it..
-#	training_df = pd.read_csv("{}/training_sets/c3_training_set_30_each.csv"\
-#	                           .format(project_dir))
-	# Just in case!!
-#	training_df = training_df.dropna()
-
-	# =====================================
-	#        IMPORT NEW UKNOWN DATA
-	# =====================================
-	print("Importing SOM bins file...")
-	# Get SOM samples
-#	df = pd.read_csv('{}/som_bins/campaign_{}.csv'\
-#	                 .format(px402_dir, campaign_num), 'r', delimiter=',')
-
 #==============================================================================
+#                      SELF-ORGANISING MAP FUNCTION
 #==============================================================================
-
-	# =========================
-	#    Training 1 - 30 Each
-	# =========================
-#	df = pd.read_csv("{}/training_sets/c3_training_set_30_each.csv"\
-#	                 .format(project_dir))
-
-	# =========================
-	#    Training 2 - 50 Each (100 Noise and OTHPER)
-	# =========================
-#	df = pd.read_csv("{}/training_sets/c3_training_set_50_each_100_noise_othper.csv"\
-#	                 .format(project_dir))
-
-	# =========================
-	#    Training 3 - 50 Each (250 Noise and OTHPER)
-	# =========================
-#	df = pd.read_csv("{}/training_sets/c3_training_set_50_each_250_noise_othper.csv"\
-#	                 .format(project_dir))
-
-	# =========================
-	#    Training 4 - Probability1 
-	# =========================
-#	df = pd.read_csv("{}/training_sets/c3_training_set_probability1.csv"\
-#	                 .format(project_dir))
-
-	# =========================
-	#  Training 5 C3 AND C4 Top 500 
-	# =========================
-#	df = pd.read_csv("{}/training_sets/c34_top500_probability.csv"\
-#	                 .format(project_dir))
-
-	# =========================
-	#  Training 6 C3 AND C4 Top 1000 
-	# =========================
-	df = pd.read_csv("{}/training_sets/c34_top1000_probability.csv"\
-	                 .format(project_dir))
-
-#==============================================================================
-#==============================================================================
-
-	# The useful dataframe for SOM statistics.
-	df = df.dropna()
-
-	# Make copy of data frame without string entries (class) so that we can 
-	# convert it to a numpy array
-	if known:
-		df_without_class = df.drop("Class", axis=1).drop("Probability", axis=1)
+# Returns dataframe of epics given in testfile with distances to nearest cluster
+# and template distance. Also writes to csv.
+def make_2D_SOM_from_lightcurve(campaign_num, training_file, test_file=None, dimension=2,
+                                plot_kohonen=False, plot_SOM=False,
+                                write_to_csv=False, save_plots=False):
 
 	# ===============================
 	# Variables needed for SOM object
 	# ===============================
 
-	# Size of Kohonen Layer. 40x40 for visual. 1600x1 for RF
-	som_shape = [40, 40]
+	# Size of SOM Map. 40x40 for visual. 1600x1 for RF
+	som_shape = SOM_shape(dimension)
 
-	# Chose at complete random
+	# Chose at complete random - seems sufficient
 	n_iter = 25
 
 	# Number of features (Will be number of bins of phase folded lightcurve)
 	n_bins = 64
 
-	# Convert df to 2D numpy array
-	som_samples = df_without_class.to_numpy(dtype=np.float32)
 
-	# Remove EPICs from table. NOT Necessary for model
-	som_samples = np.delete(som_samples, [64], 1)
 
+	# ===============================
+	#     Process Training Data
+	# ===============================
+	# Requires a nice clean training set.
+	# We will do this by restricting this set to ones with sufficiently large
+	# probabilties.
+	train_df, train_samples = get_training_samples(project_dir, training_file)
+
+	som_samples_df, som_samples = get_som_samples(train_df, train_samples, campaign_num, test_file)
+
+	# Here, we have a som_samples array ready for mapping with 64 bins.
+
+
+
+	# ===============================
+	#      Initialise SOM Object 
+	# ===============================
+
+	# Initial Distribution in Kohonen Layer. Uniform.
 	def init(som_samples):
+		# Add seed for reproducible kohonen layer. Easier than saving it.
+		np.random.seed(5)
 		return np.random.uniform(0, 2, size=(som_shape[0], som_shape[1], n_bins))
 
-	# Initialise and Plot
+	# Initialise SOM Object
 	som = SimpleSOMMapper(som_shape, n_iter, initialization_func=init)
 
-	# XXX This line should change to train(training_samples)
+
+
+	# ===============================
+	#         TRAIN The SOM
+	# ===============================
+
 	print("Training SOM...")
-	som.train(som_samples)
-	print("SOM Trained")
+	som.train(train_samples)
+	print("SOM Trained.")
+
+
+
+	# ===============================
+	# Option to Plot the Kohonen Layer
+	# ===============================
+	#  At this point, SOM is trained, and there are templates setup.
+	# The user has the option to plot it here.
 
 	if (plot_kohonen):
+		plot_kohonen_layer(som, n_bins, som_shape, save_plots, project_dir, "interim1")
 
-		# Get Final Kohonen Layer
-		final_kohonen = som._access_kohonen()
-		# Plot Kohonen Layer
-		print("Setting Up Axes")
-		fig, axs = plt.subplots(8, 8, sharex=True, sharey=True,
-		                        gridspec_kw={'hspace': 0, 'wspace':0})
-		print("Axes Set up.")
-		x = np.linspace (0, 1, n_bins)
-		for i in range(0, som_shape[0], 5):
-			for j in range(0, som_shape[1], 5):
-				redi = int(i/5)
-				redj = int(j/5)
-				# Rotation 90 degrees anticlockwise due to matplotlib axes 
-				# convention. Now SOM and Kohonen layers can be compared.
-				axi = -redj % int(som_shape[0]/5)
-				axj = redi
-				axs[axi, axj].scatter(x, final_kohonen[i][j], s=0.75)
-				axs[axi, axj].set_ylim(0,1)
-				axs[axi, axj].set_yticklabels([])
-				axs[axi, axj].set_xticklabels([])
-		plt.subplots_adjust(top=0.9)
-		fig.suptitle("Kohonen Layer - 8x8 filter of 40x40")
-		plt.savefig("{}/plots/training_set_candidates/c34_top1000_kohonen.png".format(project_dir))
-		plt.close()
 
-	# XXX - At this point, SOM is trained, and there are templates setup. At 
-	# this stage in the code, I would like to print these out.
 
-	# Then at this point, we map the new sample or just call best matching pixel.
+	# ===============================
+	# Map test samples onto trained SOM
+	# ===============================
+	# Then at this point, we map the new sample to the best matching pixel.
 	# This MAP is now an array of triples (best_x, best_y, distance_to_them)
+
 	print("Mapping samples to the SOM, and calculating bmus...")
 	map = som(som_samples)
 	print("BMU's calculated for whole sample.")
 
-	# ===========================================
-	#          PLOTTING OF KNOWN SOM
-	# ===========================================
 
-	if (plot_som):
 
-		# This float_map adds random jitter to the co-ordinates
-		# (first two args).
-		float_map = [[float(map[i][j]) + np.random.normal(0, 0.5)\
-		               for j in range(2)] for i in range(len(map))] 
-		EA = []
-		EB = []
-		RRab = []
-		DSCUT = []
-		GDOR = []
-		OTHPER = []
-		Noise = []
-		for i in range(len(float_map)):
-			test_object = df.iloc[i]['Class'].split()[0]
-			if (test_object == 'EA'):
-				EA.append(float_map[i])
-			elif (test_object == 'EB'):
-				EB.append(float_map[i])
-			elif (test_object == 'RRab'):
-				RRab.append(float_map[i])
-			elif (test_object == 'GDOR'):
-				GDOR.append(float_map[i])
-			elif (test_object == 'OTHPER'):
-				OTHPER.append(float_map[i])
-			elif (test_object == 'DSCUT'):
-				DSCUT.append(float_map[i])
-			elif (test_object == 'Noise'):
-				Noise.append(float_map[i])
-			else:
-				print("Error - no such class.")
-		if (len(EA) > 0):
-			plt.scatter(*zip(*EA), s=3.5, c='r', label='EA')
-		if (len(EB) > 0):
-			plt.scatter(*zip(*EB), s=3.5, c='b', label='EB')
-		if (len(RRab) > 0):
-			plt.scatter(*zip(*RRab), s=3.5, c='g', label='RRab')
-		if (len(DSCUT) > 0):
-			plt.scatter(*zip(*DSCUT), s=3.5, c='y', label='DSCUT')
-		if (len(GDOR) > 0):
-			plt.scatter(*zip(*GDOR), s=3.5, c='c', label='GDOR')
-		if (len(OTHPER) > 0):
-			plt.scatter(*zip(*OTHPER), s=0.1, c='m', label='OTHPER')
-		if (len(Noise) > 0):
-			plt.scatter(*zip(*Noise), s=0.1, c='k', label="Noise")
-		print("Total classified stars: ", len(EA) + len(EB) + len(RRab)\
-		                                + len(DSCUT) + len(GDOR))
-		print("Total Noise or OTHPER stares: ", len(Noise) + len(OTHPER))
+	# ==========================
+	#   Process SOM DISTANCES
+	# ==========================
+	# Now we process distances to return to the user as a csv file.
+	# Need to return arry of len(som_samples) with entries
+	# [rr_dist, ea_dist, eb_dist, gdor/dscut_dist, template_dist]
 
-		plt.xlabel("SOM X Pixel")
-		plt.ylabel("SOM Y Pixel")
-		plt.legend()
-		plt.savefig("{}/plots/training_set_candidates/c34_top1000_som.png".format(project_dir))
-		plt.close()
+	# Judged by eye - using clean_1.csv and seed=5
+	# RRab, EA, EB, GDOR/DSCUT
+
+	clusters = [[11, 13], [31, 21], [31, 6], [13, 33]]
+	if write_to_csv:
+		process_som_statistics(map, som_samples_df, som_shape, clusters, project_dir, campaign_num)
+
+
+
+	# ==========================
+	#   Option to Plot SOM 
+	# ==========================
+
+	if (plot_SOM):
+		plot_som(map, som_samples_df, som_shape, save_plots, project_dir, "interim1")
+
+	# Return dataframe for possible later work.
+	print("Program Complete.")
+	return som_samples_df 
+
+
+
+#==============================================================================
+#                                  MAIN
+#==============================================================================
 
 def main():
-#	make_2D_SOM_from_features(3)
 
-	make_2D_SOM_from_lightcurve(campaign_num=3, plot_kohonen=True, plot_som=True)
+	# ==============================
+	#  Training 1 C3 AND C4 Top 500 
+	# ==============================
+	training1 = "c34_top500_probability"
+
+	# ==============================
+	#  Training 2 C3 AND C4 Top 1000 
+	# ==============================
+	training2 = "c34_top1000_probability"
+
+	# ==================================
+	#  Training 3 C3 AND C4 0.5 and over 
+	# =================================
+	training3 = "c34_probability_over_half"
+
+	# ==================================
+	#  Training 4 C3 AND C4 0.5 and over 
+	# Only 100 OTHPER and 0 Noise
+	# =================================
+	training4 = "c34_probability_over_half_100_OTHPER_0_Noise"
+
+	# ==================================
+	# Training 5 C3 AND C4 0.5 and over 
+	# Only 200 OTHPER and 0 Noise
+	# =================================
+	training5 = "c34_probability_over_half_200_OTHPER_0_Noise"
+
+	# ==================================
+	# Training 6 C3 AND C4 0.5 and over 
+	# Only 600 OTHPER and 0 Noise
+	# =================================
+	training6 = "c34_probability_over_half_600_OTHPER_0_Noise"
+
+	# ==================================
+	# Training 7 C3 AND C4 Best 70/80 of each 
+	# 0 Noise.
+	# =================================
+	training7 = "c34_clean_1"
+
+	# ==================================
+	# Test against whole campaign
+	# =================================
+	test_file = "som_bins/campaign_"
+
+
+	# Plot Training Set
+	make_2D_SOM_from_lightcurve(campaign_num=4, training_file=training7,
+	                            test_file=None, dimension=2,
+	                            plot_kohonen=True, plot_SOM=True,
+	                            save_plots=True, write_to_csv=False)
+
+	# Export whole campaign to table from training set
+#	make_2D_SOM_from_lightcurve(campaign_num=4, training_file=training7,
+#	                            test_file=test_file, dimension=2,
+#	                            plot_kohonen=False, plot_som=False,
+#	                            save_plots=False, write_to_csv=True)
 
 if __name__ == "__main__":
 	main()
+

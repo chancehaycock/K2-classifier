@@ -128,6 +128,7 @@ def lc_statistics(campaign_num):
 	          .format(px402_dir, campaign_num), 'a+') as statfile:
 		df.to_csv(statfile, index=False)
 	print("Complete.")
+	print("Statistics computed for {} objects.".format(size))
 
 def main():
 	lc_statistics(3)

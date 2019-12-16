@@ -27,7 +27,7 @@ from kepler_data_utilities import *
 	# - 1) Periods file as from SJH
 	# - 2) Unique GAIA data - from gaia_crossmatch.py
 	# - 3) Lightcurve statistics - from lightcurve_statistics.py
-	# - 4) SOM Bins from process_lightcurve.py
+	# - 4) SOM Statistics from make_som.py
 	# - 5) Classes and Probabilites
 
 # K2ID, Period1..6, Ratios, temp, r_est, abs_magnitude etc.
@@ -66,10 +66,10 @@ def create_table(campaign_num):
 	                 .format(project_dir, campaign_num)
 	lc_stats_df = pd.read_csv(lc_stats_file, low_memory=False)
 
-	# 4) Binned SOM values (64 default)
-	binned_som_file = '{}/som_bins/campaign_{}.csv'\
+	# 4) SOM statistics
+	som_file = '{}/som_statistics/campaign_{}.csv'\
 	                         .format(project_dir, campaign_num)
-	binned_som_df = pd.read_csv(binned_som_file, low_memory=False)
+	som_df = pd.read_csv(som_file, low_memory=False)
 
 	# 5) Classes and Probabilities
 	if known_campaign:
@@ -80,7 +80,7 @@ def create_table(campaign_num):
 	print("{} loaded.".format(period_file))
 	print("{} loaded.".format(gaia_file))
 	print("{} loaded.".format(lc_stats_file))
-	print("{} loaded.".format(binned_som_file))
+	print("{} loaded.".format(som_file))
 	print("{} loaded.".format(classes_file)) if known_campaign else None
 
 	add_columns = True
@@ -96,8 +96,8 @@ def create_table(campaign_num):
 		sub_gaia_df = gaia_df[gaia_df['epic_number'] == epic][gaia_features]
 		# 3) Lightcurve Statistics - CJH
 		sub_lc_stats_df = lc_stats_df[lc_stats_df['epic_number'] == epic]
-		# 4) SOM Bins - CJH
-		sub_binned_som_df = binned_som_df[binned_som_df['epic_number'] == epic].drop("Class", axis=1).drop("Probability", axis=1) 
+		# 4) SOM Stats - CJH
+		sub_som_df = som_df[som_df['epic_number'] == epic] 
 		# 5) Classes File (Only happens on known campaigns)
 		if known_campaign:
 			sub_classes_df = classes_df[classes_df['epic_number'] == epic]
@@ -122,7 +122,7 @@ def create_table(campaign_num):
 		# ===============================
 		df = sub_period_df.merge(sub_gaia_df, how='left', on='epic_number')\
 		              .merge(sub_lc_stats_df, how='left', on='epic_number')\
-		            .merge(sub_binned_som_df, how='left', on='epic_number')
+		              .merge(sub_som_df, how='left', on='epic_number')
 
 		if known_campaign:
 			df = df.merge(overall_class_df,   how='left', on='epic_number')
@@ -130,7 +130,7 @@ def create_table(campaign_num):
 		# ===============================
 		#        WRITE IT TO CSV
 		# ===============================
-		with open('{}/tables/campaign_{}_master_table_with_bins.csv'\
+		with open('{}/tables/campaign_{}_master_table_with_som_data.csv'\
 		         .format(project_dir, campaign_num), 'a+') as file:
 			if (add_columns):
 				df.to_csv(file, index=None)
@@ -144,6 +144,7 @@ def create_table(campaign_num):
 			print("{0:.2f}%".format(i * 100 / size))
 
 	print("Master table for campaign {} created.".format(campaign_num))
+	print("Table has {} entries.".format(size))
 
 def main():
 	# Creates table of campaign(x) EPICS with columns:

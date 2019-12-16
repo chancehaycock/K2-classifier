@@ -52,8 +52,8 @@ def process_lcs_for_som(campaign_num, process_outliers=True, write_to_csv=False,
 		classes_file = '{}/known/armstrong_0_to_4.csv'.format(project_dir)
 		classes_df = pd.read_csv(classes_file)
 
-	with open('{}/som_bins/campaign_{}.csv'\
-	           .format(px402_dir, campaign_num), 'a+') as file:
+	output_file = '{}/som_bins/campaign_{}.csv'.format(px402_dir, campaign_num)
+	with open(output_file, 'a+') as file:
 		# Loop over all lightcurves in the campaign
 		for i in range(len(df['epic_number'])):
 			epic_num = int(df.iloc[i]['epic_number'])
@@ -182,7 +182,7 @@ def process_lcs_for_som(campaign_num, process_outliers=True, write_to_csv=False,
 				print("{0:.2f}%".format(float(100*i/size)))
 
 	# Confirmation of file compeletion
-	print("{} created.".format(file))
+	print("{} created. It has {} entries.".format(output_file, size))
 	return None
 
 
@@ -193,9 +193,9 @@ def process_lcs_for_som(campaign_num, process_outliers=True, write_to_csv=False,
 def main():
 	print("Running...")
 #	process_lcs_for_som(3, process_outliers=True, write_to_csv=True, plot=True)
-#	process_lcs_for_som(3, process_outliers=True, write_to_csv=True, plot=False)
+	process_lcs_for_som(3, process_outliers=True, write_to_csv=True, plot=False)
 #	process_lcs_for_som(4, process_outliers=True, write_to_csv=True, plot=True)
-#	process_lcs_for_som(4, process_outliers=True, write_to_csv=True, plot=False)
+	process_lcs_for_som(4, process_outliers=True, write_to_csv=True, plot=False)
 
 if __name__ == "__main__":
 	main()
