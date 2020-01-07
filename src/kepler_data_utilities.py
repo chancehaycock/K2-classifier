@@ -235,7 +235,8 @@ def plot_kohonen_layer(som, n_bins, som_shape, save_plots, project_dir, kohonen_
 #			axs[axi, axj].scatter(x, final_kohonen[i][j], s=0.75)
 			ax = sbn.scatterplot(x=df.index, y='points', s=2.0, hue='points',
 			                     linewidth=0, data=df, ax=axs[axi, axj],
-			                     palette="GnBu", legend=None)
+			                     #palette="GnBu",
+			                     c='b', legend=None)
 			ax.set_ylabel('')    
 			ax.set_xlabel('')
 
@@ -243,7 +244,7 @@ def plot_kohonen_layer(som, n_bins, som_shape, save_plots, project_dir, kohonen_
 #	plt.show()
 	if save_plots:
 		plt.tight_layout()
-		plt.savefig("{}/plots/{}_kohonen.eps".format(project_dir, kohonen_ofile), format='eps')
+		plt.savefig("{}/plots/{}_kohonen_now.eps".format(project_dir, kohonen_ofile), format='eps')
 	plt.close()
 	return None
 
@@ -339,7 +340,7 @@ def plot_som(map, samples_df, som_shape, save_plots, project_dir, som_ofile):
 	palette2 = sbn.color_palette("husl", 5)
 	ax = sbn.scatterplot(x='float_x', y='float_y', palette=palette2,
 	                    linewidth=0,  hue='class', s=7.5, 
-	                    alpha=1.0, legend=None, style='class', data=som_plot_df)
+	                    alpha=1.0, style='class', data=som_plot_df, legend='brief')
 	#plt.setp(ax.get_legend().get_texts(), fontsize='8') # for legend text
 	#plt.setp(ax.get_legend().get_title(), fontsize='10') # for legend title
 	plt.xlabel("SOM X Pixel")
@@ -348,7 +349,7 @@ def plot_som(map, samples_df, som_shape, save_plots, project_dir, som_ofile):
 	if save_plots:
 		plt.tight_layout()
 		print("Saving SOM File")
-		plt.savefig("{}/plots/{}_som.eps".format(project_dir, som_ofile), format='eps')
+		plt.savefig("{}/plots/{}_som_now.eps".format(project_dir, som_ofile), format='eps')
 	plt.close()
 	return None
 
