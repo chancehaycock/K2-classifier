@@ -106,15 +106,15 @@ def delete_useless_flags(times, flux, mflags):
 	times = np.delete(times, del_array)
 	return times, flux
 
-def get_hdul(epic_num, campaign_num, use_remote=False) :
+def get_hdul(epic_num, campaign_num, detrending='k2sc', use_remote=False) :
 	path_to_dir=""
 	if (use_remote):
-		path_to_dir = "/storage/astro2/phujzc/k2sc_data/campaign_{}"\
-		              .format(campaign_num)
+		path_to_dir = "/storage/astro2/phujzc/{}_data/campaign_{}"\
+		              .format(detrending, campaign_num)
 	else:
 		path_to_dir = "{}/k2sc_data/campaign_{}".format(px402_dir, campaign_num)
-	return fits.open('{}/hlsp_k2sc_k2_llc_{}-c0{}_kepler_v2_lc.fits'\
-	                 .format(path_to_dir, epic_num, campaign_num))
+	return fits.open('{}/hlsp_{}_k2_llc_{}-c0{}_kepler_v2_lc.fits'\
+	                 .format(path_to_dir, detrending, epic_num, campaign_num))
 
 def get_lightcurve(hdul, lc_type='PDC', process_outliers=True):
 	if (lc_type == "PDC"):
