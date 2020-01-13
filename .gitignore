@@ -4,9 +4,10 @@ everest_data/*
 *.png
 src/__pycache__/
 *.fits
-*.csv
-*.xlsx
+# *.csv
+# *.xlsx
 *.txt
 *.eps
 plots/*
 log/*
+antares_temp_plots/*
