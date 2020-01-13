@@ -88,35 +88,69 @@ project_dir = '/Users/chancehaycock/dev/machine_learning/px402'
 
 # We want to remove K2 Quality flags (0), upwards outliers (3) and non-finite
 # flux(5)
-def delete_useless_flags(times, flux, mflags):
+def delete_useless_flags(times, flux, mflags, err, detrending):
 	del_array = []
-	for i, flag in enumerate(mflags):
 
-		# K2 Quality Flags
-		fcond1 = 2**0 <= flag <= 2**(0 + 1) - 1
-		# Upwards Outlier
-		fcond2 = 2**3 <= flag <= 2**(3 + 1) - 1
-		# Non-Finite Flux
-		fcond3 = 2**5 <= flag <= 2**(5 + 1) - 1
+	if detrending == "k2sc":
+		for i, flag in enumerate(mflags):
 
-		if fcond1 or fcond2 or fcond3:
-			del_array.append(i)
+			# K2 Quality Flags
+			fcond1 = 2**0 <= flag <= 2**(0 + 1) - 1
+			# Upwards Outlier
+			fcond2 = 2**3 <= flag <= 2**(3 + 1) - 1
+			# Non-Finite Flux
+			fcond3 = 2**5 <= flag <= 2**(5 + 1) - 1
 
-	flux = np.delete(flux, del_array)
-	times = np.delete(times, del_array)
-	return times, flux
+			if fcond1 or fcond2 or fcond3:
+				del_array.append(i)
 
-def get_hdul(epic_num, campaign_num, detrending='k2sc', use_remote=False) :
+
+		del_flux = np.delete(flux, del_array)
+		del_times = np.delete(times, del_array)
+		del_err = np.delete(err, del_array)
+		return del_times, del_flux, del_err
+
+	else:
+		# EVEREST Prep
+		for i, flag in enumerate(mflags):
+			
+			# EVERST NAN
+			fcond1 = 2**24 <= flag <= 2**(24 + 1) - 1
+			# EVEREST 'Outlier'
+			fcond2 = 2**25 <= flag <= 2**(25 + 1) - 1
+
+			if fcond1 or fcond2:
+				del_array.append(i)
+
+		del_flux = np.delete(flux, del_array)
+		del_times = np.delete(times, del_array)
+		del_err = np.delete(err, del_array)
+
+		return del_times, del_flux, del_err
+
+
+		return times, flux, err
+
+
+def get_hdul(epic_num, campaign_num, detrending='k2sc', use_remote=False):
 	path_to_dir=""
+	version_suffix = ""
+
+	# K2sc has lc's ...v2.fits, Everest has ...v2.0_fits
+	if detrending == 'everest':
+		version_suffix += '.0'
+
 	if (use_remote):
 		path_to_dir = "/storage/astro2/phujzc/{}_data/campaign_{}"\
 		              .format(detrending, campaign_num)
 	else:
-		path_to_dir = "{}/k2sc_data/campaign_{}".format(px402_dir, campaign_num)
-	return fits.open('{}/hlsp_{}_k2_llc_{}-c0{}_kepler_v2_lc.fits'\
-	                 .format(path_to_dir, detrending, epic_num, campaign_num))
+		path_to_dir = "{}/{}_data/campaign_{}".format(px402_dir, detrending, campaign_num)
 
-def get_lightcurve(hdul, lc_type='PDC', process_outliers=True):
+	return fits.open('{}/hlsp_{}_k2_llc_{}-c0{}_kepler_v2{}_lc.fits'\
+	                 .format(path_to_dir, detrending, epic_num, campaign_num, version_suffix))
+
+
+def get_lightcurve(hdul, lc_type='PDC', process_outliers=True, detrending="k2sc", include_errors=False):
 	if (lc_type == "PDC"):
 		lc_type_indx = 1
 	elif (lc_type == "SAP"):
@@ -125,19 +159,37 @@ def get_lightcurve(hdul, lc_type='PDC', process_outliers=True):
 		print("Invalid lightcurve type passed. Choose PDC or SAP.")
 		return
 
-	flux = hdul[lc_type_indx].data['flux']
-	trend_t = hdul[lc_type_indx].data['trtime']
-	times = hdul[lc_type_indx].data['time']
-	mflags = hdul[lc_type_indx].data['mflags']
+	if detrending == "k2sc":
+		print("Fetching K2SC detrended lightcurve...")
+		raw_flux = hdul[lc_type_indx].data['flux']
+		trend_t = hdul[lc_type_indx].data['trtime']
+		times = hdul[lc_type_indx].data['time']
+		mflags = hdul[lc_type_indx].data['mflags']
+		err = hdul[lc_type_indx].data['error']
 
-	# Note that this is the detrended data as described above.
-	flux_c = flux + trend_t - np.median(trend_t)
+		# Note that this is the detrended data as described above.
+		flux = raw_flux + trend_t - np.median(trend_t)
+
+	if detrending == "everest":
+		print("Fetching EVEREST detrended lightcurve...")
+		# EVEREST doesnt have errors on the detrended so get rid of that
+		# here. Also only lightcurve data is on hdul[1]
+		lc_type_index = 1
+		# EVEREST corrected flux
+		flux = hdul[lc_type_indx].data['FRAW']
+		times = hdul[lc_type_indx].data['TIME']
+		mflags = hdul[lc_type_indx].data['QUALITY']
+		err = hdul[lc_type_indx].data['FRAW_ERR']
 
 	# IS THIS SOMETHING WE WANT TO DO???
 	if (process_outliers): 
-		times, flux_c = delete_useless_flags(times, flux_c, mflags)
+		times, flux, err = delete_useless_flags(times, flux, mflags, err, detrending)
 
-	return times, flux_c
+	if (include_errors):
+		return times, flux, err
+	else:
+		return times, flux
+
 
 def campaign_is_known(campaign_num):
 	known_campaigns = [0, 1, 2, 3, 4]
@@ -372,6 +424,7 @@ def SOM_shape(dimension):
 def main():
 	test_epics = [205898099, 205905261, 205906121, 205908778, 205910844, 205912245,
                   205926404, 205940923, 205941422]
+
 
 if __name__ == "__main__":
 	main()

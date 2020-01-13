@@ -35,7 +35,7 @@ def make_unique_gaia_csv(search_radius, campaign_num):
 				epic_df_size = len(epic_df.index)
 				if (epic_df_size == 1):
 					epic_df.to_csv(file, header=False, index=None)
-					print("Added EPIC {} to CSV File. Was unique.".format(epic))
+				#	print("Added EPIC {} to CSV File. Was unique.".format(epic))
 					epic_count += 1
 					continue
 				else:
@@ -46,9 +46,9 @@ def make_unique_gaia_csv(search_radius, campaign_num):
 					wanted_index = gaia_mags_df.idxmin() 
 					temp_df = temp_df.append(epic_df.loc[wanted_index])
 					temp_df.to_csv(file, header=False, index=None)
-					print("Added EPIC {} to CSV File. Was not unique.".format(epic))
+				#	print("Added EPIC {} to CSV File. Was not unique.".format(epic))
 					epic_count += 1
-			print("Complete.")
+	print("{} items added to unique GAIA file from campaign {}.".format(epic_count, campaign_num))
 	return epic_count
 
 def gaia_data_to_csv(search_radius, campaign_num):
@@ -67,6 +67,7 @@ def gaia_data_to_csv(search_radius, campaign_num):
 	return
 
 def main():
+	print("Running...")
 	# Make 3 CSV's for campaigns 3-5
 #	count3 = make_unique_gaia_csv(1, 3)
 #	count4 = make_unique_gaia_csv(1, 4)
@@ -74,11 +75,14 @@ def main():
 #	print("Unique EPICS from Campaign 3: ", count3)
 #	print("Unique EPICS from Campaign 4: ", count4)
 #	print("Unique EPICS from Campaign 5: ", count5)
+	#make_unique_gaia_csv(1, 8)
+
+	for i in range(0, 3):
+		make_unique_gaia_csv(1, i)
 
 	# Use this function to check original GAIA data from a specific campaign.
 	# i.e. not unique.
 #	gaia_data_to_csv(1, 3)
-	print("Compiled.")
 
 if __name__ == '__main__':
 	main()
