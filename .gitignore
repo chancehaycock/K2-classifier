@@ -11,3 +11,4 @@ src/__pycache__/
 plots/*
 log/*
 antares_temp_plots/*
+pipelines/*
