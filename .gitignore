@@ -1,14 +1,8 @@
-k2sc_data/*
-everest_data/*
+lightcurve_data/*
 .DS_Store 
-*.png
 src/__pycache__/
-*.fits
-# *.csv
-# *.xlsx
-*.txt
-*.eps
 plots/*
 log/*
-antares_temp_plots/*
+antares_temp/*
 pipelines/*
+*.fits
