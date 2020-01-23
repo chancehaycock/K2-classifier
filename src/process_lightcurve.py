@@ -19,7 +19,7 @@ import matplotlib.gridspec as gridspec
 
 # Needs to be done from period file and crossmatched with the classifications
 # from armstron et. al here.
-def process_lcs_for_som(campaign_num, process_outliers=True, write_to_csv=False,
+def process_lcs_for_som(campaign_num, detrending, process_outliers=True, write_to_csv=False,
                         plot=False):
 
 	# Is campaign known?
@@ -42,7 +42,7 @@ def process_lcs_for_som(campaign_num, process_outliers=True, write_to_csv=False,
 #	df = pd.read_csv(data_file)
 
 	# Do everything from period file NOT master table. (Not created yet)
-	periods_file = '{}/periods/campaign_{}.csv'.format(project_dir,
+	periods_file = '{}/periods/{}/campaign_{}.csv'.format(project_dir, detrending
 	                                                   campaign_num)
 	df = pd.read_csv(periods_file)
 	df = df[['epic_number', 'Period_1']]
@@ -52,7 +52,7 @@ def process_lcs_for_som(campaign_num, process_outliers=True, write_to_csv=False,
 		classes_file = '{}/known/armstrong_0_to_4.csv'.format(project_dir)
 		classes_df = pd.read_csv(classes_file)
 
-	output_file = '{}/som_bins/campaign_{}.csv'.format(px402_dir, campaign_num)
+	output_file = '{}/som_bins/{}/campaign_{}.csv'.format(px402_dir, detrending, campaign_num)
 	with open(output_file, 'a+') as file:
 		# Loop over all lightcurves in the campaign
 		for i in range(len(df['epic_number'])):
@@ -193,9 +193,9 @@ def process_lcs_for_som(campaign_num, process_outliers=True, write_to_csv=False,
 def main():
 	print("Running...")
 #	process_lcs_for_som(3, process_outliers=True, write_to_csv=True, plot=True)
-	process_lcs_for_som(3, process_outliers=True, write_to_csv=True, plot=False)
+#	process_lcs_for_som(3, process_outliers=True, write_to_csv=True, plot=False)
 #	process_lcs_for_som(4, process_outliers=True, write_to_csv=True, plot=True)
-	process_lcs_for_som(4, process_outliers=True, write_to_csv=True, plot=False)
+#	process_lcs_for_som(4, process_outliers=True, write_to_csv=True, plot=False)
 
 if __name__ == "__main__":
 	main()
