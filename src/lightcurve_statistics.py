@@ -17,20 +17,24 @@
 from kepler_data_utilities import *
 import scipy.stats
 
-def lc_statistics(campaign_num):
+def lightcurve_statistics(campaign_num, detrending):
+
 	# First need to import lightcurve and remove the fitted polynomial
-	epics_file = '{}/periods/campaign_{}.csv'\
-	              .format(project_dir, campaign_num)
+	epics_file = '{}/periods/{}/campaign_{}.csv'\
+	              .format(project_dir, detrending, campaign_num)
 	epics_df = pd.read_csv(epics_file)
 	epics_df = epics_df[['epic_number']]
+	num_lcs = len(epics_df)
 
-	binned_lc_df = pd.read_csv("{}/som_bins/campaign_{}.csv".format(project_dir,
-	                                                                campaign_num))
+	binned_lc_df = pd.read_csv("{}/phasefold_bins/{}/campaign_{}.csv".format(project_dir,
+	                                                                detrending, campaign_num))
 	columns = ["epic_number", "lc_amplitude", "p2p_98", "p2p_mean", "stddev",
 	           "kurtosis", "skew", "iqr", "mad", "max_binned_p2p", "mean_binned_p2p"]
 
 	df = pd.DataFrame(columns=columns)
 
+	print("Calculating non-periodic statistics for {} {} lightcurves from campaign {}."\
+	       .format(num_lcs, detrending, campaign_num))
 	for i in range(len(epics_df)):
 
 		# ===========================================
@@ -39,17 +43,20 @@ def lc_statistics(campaign_num):
 
 		epic_num = int(epics_df.iloc[i])
 
-		hdul = get_hdul(epic_num, campaign_num)
+		hdul = get_hdul(epic_num, campaign_num, detrending=detrending)
 		# By default chooses PDC
-		times, flux = get_lightcurve(hdul, process_outliers=True)
+		times, flux = get_lightcurve(hdul, process_outliers=True, detrending=detrending)
+
+		# XXX - Median Divide - Was not done for campaign 3 and 4.
 		flux_median = np.median(flux)
+		flux /= flux_median
 
 		# Add intermediate step here of fitting 3rd order polynomial
 		# to remove long term periodic variations to help the phasefolds etc
 		coefficients = np.polyfit(times,flux,3,cov=False)
 		polynomial = np.polyval(coefficients,times)
 		#subtracts this polynomial from the median divided flux
-		poly_flux = flux-polynomial+flux_median
+		poly_flux = flux - polynomial + 1
 
 		# NOW DO ALL CALCULATIONS WITH POLY_FLUX
 		# Amplitude
@@ -80,14 +87,12 @@ def lc_statistics(campaign_num):
 		# convenience and hence only create one extra csv file.
 
 		binned_values = binned_lc_df[binned_lc_df["epic_number"] == epic_num]
-		binned_values = binned_values.drop("epic_number", axis=1)\
-		                             .drop("Class", axis=1)\
-		                             .drop("Probability", axis=1)
+		binned_values = binned_values.drop("epic_number", axis=1)
 
 		diffs = np.diff(binned_values)
 		# XXX Should this be absolute difference????
-		max_binned_p2p = np.max(diffs)
-		mean_binned_p2p = np.mean(diffs)
+		max_binned_p2p = np.nanmax(abs(diffs))
+		mean_binned_p2p = np.nanmean(diffs)
 
 		# Add to files here. Only Prints for now.
 		df.loc[i] = np.zeros(len(columns))
@@ -124,15 +129,19 @@ def lc_statistics(campaign_num):
 	print("Converting dataframe to csv file...")
 
 	# Send Dataframe to CSV
-	with open("{}/non-periodic_statistics/lightcurve_statistics_c{}.csv"\
-	          .format(px402_dir, campaign_num), 'a+') as statfile:
+	with open("{}/lightcurve_statistics/{}/campaign_{}.csv"\
+	          .format(px402_dir, detrending, campaign_num), 'a+') as statfile:
 		df.to_csv(statfile, index=False)
 	print("Complete.")
 	print("Statistics computed for {} objects.".format(size))
 
 def main():
-	lc_statistics(3)
-	lc_statistics(4)
+#	lc_statistics(3)
+#	lc_statistics(4)
+#	lightcurve_statistics(1, 'k2sc')
+	lightcurve_statistics(2, 'k2sc')
+	lightcurve_statistics(3, 'k2sc')
+	lightcurve_statistics(4, 'k2sc')
 
 if __name__ == "__main__":
 	main()

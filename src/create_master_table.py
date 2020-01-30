@@ -3,11 +3,8 @@
 
 from kepler_data_utilities import *
 
-# The aim of this script is to to produce a CSV file per Campaign including all
-# relevant data to be fed into the machine learning model. A full list of the
-# columns will be present here:
-#
-#                      <INSERT COLUMNS OF TABLE>
+# The aim of this script is to to produce a CSV file per Campaign including most
+# of the relevant data to be fed into the machine learning model. 
 #
 # The table will consist of statistics for each lightcurve present in a
 # campaign. Some of these will be directly calculated from the lightcurve
@@ -19,7 +16,6 @@ from kepler_data_utilities import *
 # LC-Nonperiodic and GAIA data.  
 
 # Everything stems from the period file.
-# If known - this produces a training set.
 
 # ========================================================
 #              Dependencies (CSV Files required)
@@ -27,27 +23,25 @@ from kepler_data_utilities import *
 	# - 1) Periods file as from SJH
 	# - 2) Unique GAIA data - from gaia_crossmatch.py
 	# - 3) Lightcurve statistics - from lightcurve_statistics.py
-	# - 4) SOM Statistics from make_som.py
-	# - 5) Classes and Probabilites
+	# - 4) Phasefolded Bin values - from phasefold.py
+	# - 5) Classes and Probabilites - from armstong_0_to_4.csv
 
-# K2ID, Period1..6, Ratios, temp, r_est, abs_magnitude etc.
-
-# Array of features to be used (Example for now)
+# Array of gaia features to be used (Example for now)
 gaia_features = ['epic_number', 'k2_teff', 'k2_rad', 'k2_mass', 'abs_magnitude'] 
 
-project_dir = "/Users/chancehaycock/dev/machine_learning/px402"
 
-def create_table(campaign_num):
-	if campaign_num in [0, 1, 2, 3, 4]:
-		known_campaign = True
-	else:
-		known_campaign = False
+def create_table(campaign_num, detrending):
+
+	known_campaign = campaign_is_known(campaign_num)
 
 	print("Loading Files...")
 
-	# Load Data from the 4/5 sources
+	# ============================
+	# Load Data from the 4 sources
+	# ============================
+
 	# 1) Period Data
-	period_file = '{}/periods/campaign_{}.csv'.format(project_dir, campaign_num)
+	period_file = '{}/periods/{}/campaign_{}.csv'.format(project_dir, detrending, campaign_num)
 	period_df = pd.read_csv(period_file, low_memory=False)
 	period_df = period_df[['epic_number', 'Period_1', 'Period_2']]
 	# Add columns for ratios.
@@ -62,14 +56,14 @@ def create_table(campaign_num):
 	                         - 5.0 * np.log10(gaia_df['r_est']) 
 
 	# 3) Lightcurve Statistics
-	lc_stats_file = '{}/non-periodic_statistics/lightcurve_statistics_c{}.csv'\
-	                 .format(project_dir, campaign_num)
+	lc_stats_file = '{}/lightcurve_statistics/{}/campaign_{}.csv'\
+	                 .format(project_dir, detrending, campaign_num)
 	lc_stats_df = pd.read_csv(lc_stats_file, low_memory=False)
 
-	# 4) SOM statistics
-	som_file = '{}/som_statistics/campaign_{}.csv'\
-	                         .format(project_dir, campaign_num)
-	som_df = pd.read_csv(som_file, low_memory=False)
+	# 4) Phasefold Values
+	phasefold_file = '{}/phasefold_bins/{}/campaign_{}.csv'\
+	                 .format(project_dir, detrending, campaign_num)
+	phasefold_df = pd.read_csv(phasefold_file, low_memory=False)
 
 	# 5) Classes and Probabilities
 	if known_campaign:
@@ -80,7 +74,7 @@ def create_table(campaign_num):
 	print("{} loaded.".format(period_file))
 	print("{} loaded.".format(gaia_file))
 	print("{} loaded.".format(lc_stats_file))
-	print("{} loaded.".format(som_file))
+	print("{} loaded.".format(phasefold_file))
 	print("{} loaded.".format(classes_file)) if known_campaign else None
 
 	add_columns = True
@@ -96,8 +90,8 @@ def create_table(campaign_num):
 		sub_gaia_df = gaia_df[gaia_df['epic_number'] == epic][gaia_features]
 		# 3) Lightcurve Statistics - CJH
 		sub_lc_stats_df = lc_stats_df[lc_stats_df['epic_number'] == epic]
-		# 4) SOM Stats - CJH
-		sub_som_df = som_df[som_df['epic_number'] == epic] 
+		# 4) Phasefold Bins - CJH
+		sub_phasefold_df = phasefold_df[phasefold_df['epic_number'] == epic]
 		# 5) Classes File (Only happens on known campaigns)
 		if known_campaign:
 			sub_classes_df = classes_df[classes_df['epic_number'] == epic]
@@ -118,11 +112,11 @@ def create_table(campaign_num):
 		# ===================================================================
 
 		# ===============================
-		#      Merge All 4/5 Sources!
+		#      Merge All 5 Sources!
 		# ===============================
 		df = sub_period_df.merge(sub_gaia_df, how='left', on='epic_number')\
 		              .merge(sub_lc_stats_df, how='left', on='epic_number')\
-		              .merge(sub_som_df, how='left', on='epic_number')
+		              .merge(sub_phasefold_df, how='left', on='epic_number')
 
 		if known_campaign:
 			df = df.merge(overall_class_df,   how='left', on='epic_number')
@@ -130,8 +124,8 @@ def create_table(campaign_num):
 		# ===============================
 		#        WRITE IT TO CSV
 		# ===============================
-		with open('{}/tables/campaign_{}_master_table_with_som_data.csv'\
-		         .format(project_dir, campaign_num), 'a+') as file:
+		with open('{}/tables/{}/campaign_{}_master_table.csv'\
+		         .format(project_dir, detrending, campaign_num), 'a+') as file:
 			if (add_columns):
 				df.to_csv(file, index=None)
 				add_columns = False
@@ -149,8 +143,10 @@ def create_table(campaign_num):
 def main():
 	# Creates table of campaign(x) EPICS with columns:
 	# period, etc...
-	create_table(3)
-	create_table(4)
+	create_table(1, 'k2sc')
+	create_table(2, 'k2sc')
+	create_table(3, 'k2sc')
+	create_table(4, 'k2sc')
 #	create_table(5)
 	print('Program complete.')
 

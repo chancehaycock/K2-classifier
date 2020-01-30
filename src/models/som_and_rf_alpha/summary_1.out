@@ -1,0 +1,63 @@
+Main Program Running...
+
+	=================================================================
+	                     SOM and Random Forest Model                        
+	=================================================================
+
+Best Parameters for each fold:
+{'max_features': 2, 'min_samples_split': 4, 'n_estimators': 500}
+{'max_features': 2, 'min_samples_split': 4, 'n_estimators': 500}
+{'max_features': 2, 'min_samples_split': 3, 'n_estimators': 600}
+{'max_features': 2, 'min_samples_split': 4, 'n_estimators': 500}
+{'max_features': 3, 'min_samples_split': 3, 'n_estimators': 500}
+
+Average Confusion Matrix over 5 runs:
+[[0.97272727 0.00909091 0.01818182 0.         0.         0.
+  0.        ]
+ [0.         0.90133333 0.01633333 0.03233333 0.05       0.
+  0.        ]
+ [0.008      0.024      0.944      0.016      0.008      0.
+  0.        ]
+ [0.         0.02       0.02952381 0.92095238 0.02952381 0.
+  0.        ]
+ [0.         0.10833333 0.00833333 0.         0.86666667 0.01666667
+  0.        ]
+ [0.         0.01818182 0.         0.00869565 0.01778656 0.95533597
+  0.        ]
+ [0.         0.         0.         0.         0.02813853 0.
+  0.97186147]]
+
+Std Dev of Confusion Matrix over 5 runs:
+[[0.03636364 0.01818182 0.02226809 0.         0.         0.
+  0.        ]
+ [0.         0.06642791 0.02001111 0.0467095  0.04859127 0.
+  0.        ]
+ [0.016      0.048      0.05986652 0.01959592 0.016      0.
+  0.        ]
+ [0.         0.04       0.02412176 0.09255016 0.0397726  0.
+  0.        ]
+ [0.         0.21666667 0.01666667 0.         0.24636242 0.03333333
+  0.        ]
+ [0.         0.03636364 0.         0.0173913  0.02179296 0.03979356
+  0.        ]
+ [0.         0.         0.         0.         0.0229886  0.
+  0.0229886 ]]
+
+Average Feature Importances over 5 runs:
+[0.1088576  0.08091298 0.02075312 0.04117562 0.03097149 0.04485803
+ 0.03086584 0.04757842 0.07736441 0.00866794 0.05407976 0.05772264
+ 0.06034717 0.05542359 0.05205769 0.0432105  0.02197693 0.03456181
+ 0.03805014 0.03775088 0.03590562 0.01690781]
+
+Std Dev of  Feature Importances over 5 runs:
+[0.00749605 0.00613982 0.00306001 0.00263879 0.00382941 0.00328665
+ 0.0024041  0.00360708 0.00353409 0.00082043 0.00167016 0.00402128
+ 0.00162068 0.00397439 0.00284301 0.00305127 0.00440155 0.00274185
+ 0.00503164 0.00342815 0.00259347 0.00264215]
+
+Confusion Matrix plot saved at /Users/chancehaycock/dev/machine_learning/px402/src/models/som_and_rf_alpha/confusion_matrix_1.pdf
+
+Feature Importance plot saved at /Users/chancehaycock/dev/machine_learning/px402/src/models/som_and_rf_alpha/feature_importance_1.pdf
+
+Overall Model Generalisation Score: 0.932 +/- 0.0301
+

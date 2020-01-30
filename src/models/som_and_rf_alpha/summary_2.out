@@ -1,0 +1,167 @@
+================================================================================
+                               SOM and Random Forest Model                        
+================================================================================
+
+Using training file: /Users/chancehaycock/dev/machine_learning/px402/src/models/som_and_rf_alpha/train.csv
+
+Using nested cross validation...
+Outer Loop (Model Performance Estimation) using 5 folds. Random State: 123
+Inner Loop (Hyper-parameter optimisation) using 5 folds. Random State: 123
+
+Using 22 features:
+
+Period_1
+Period_2
+amp_ratio_21
+k2_teff
+k2_rad
+k2_mass
+abs_magnitude
+lc_amplitude
+p2p_98
+p2p_mean
+stddev
+kurtosis
+skew
+iqr
+mad
+max_binned_p2p
+mean_binned_p2p
+RRab_dist
+EA_dist
+EB_dist
+GDOR_DSCUT_dist
+template_dist
+
+Inner loop is optimising over parameter space:
+{'n_estimators': [300, 400, 500, 600], 'min_samples_split': [2, 3, 4, 5, 6], 'max_features': [4, 5, 6, 7, 8]}
+
+
+Best Parameters for outer loop 0: {'max_features': 4, 'min_samples_split': 3, 'n_estimators': 400}
+
+Report:
+              precision    recall  f1-score   support
+
+       DSCUT       1.00      0.95      0.98        22
+          EA       1.00      0.84      0.91        25
+          EB       0.84      1.00      0.91        26
+        GDOR       0.86      0.86      0.86        21
+       Noise       0.96      1.00      0.98        25
+      OTHPER       0.96      1.00      0.98        23
+        RRab       1.00      0.91      0.95        22
+
+    accuracy                           0.94       164
+   macro avg       0.95      0.94      0.94       164
+weighted avg       0.94      0.94      0.94       164
+
+Best Parameters for outer loop 1: {'max_features': 4, 'min_samples_split': 5, 'n_estimators': 300}
+
+Report:
+              precision    recall  f1-score   support
+
+       DSCUT       1.00      1.00      1.00        22
+          EA       0.91      0.88      0.89        24
+          EB       0.89      1.00      0.94        25
+        GDOR       1.00      0.70      0.82        20
+       Noise       0.86      1.00      0.93        25
+      OTHPER       1.00      1.00      1.00        23
+        RRab       1.00      1.00      1.00        22
+
+    accuracy                           0.94       161
+   macro avg       0.95      0.94      0.94       161
+weighted avg       0.95      0.94      0.94       161
+
+Best Parameters for outer loop 2: {'max_features': 4, 'min_samples_split': 2, 'n_estimators': 400}
+
+Report:
+              precision    recall  f1-score   support
+
+       DSCUT       1.00      0.95      0.98        22
+          EA       1.00      0.83      0.91        24
+          EB       0.89      0.96      0.92        25
+        GDOR       0.95      0.95      0.95        20
+       Noise       0.83      1.00      0.91        24
+      OTHPER       1.00      0.91      0.95        23
+        RRab       0.95      0.95      0.95        21
+
+    accuracy                           0.94       159
+   macro avg       0.95      0.94      0.94       159
+weighted avg       0.94      0.94      0.94       159
+
+Best Parameters for outer loop 3: {'max_features': 4, 'min_samples_split': 5, 'n_estimators': 300}
+
+Report:
+              precision    recall  f1-score   support
+
+       DSCUT       0.95      1.00      0.98        21
+          EA       0.92      0.96      0.94        24
+          EB       1.00      0.92      0.96        25
+        GDOR       0.95      1.00      0.98        20
+       Noise       0.92      1.00      0.96        24
+      OTHPER       1.00      0.91      0.95        22
+        RRab       1.00      0.95      0.98        21
+
+    accuracy                           0.96       157
+   macro avg       0.96      0.96      0.96       157
+weighted avg       0.96      0.96      0.96       157
+
+Best Parameters for outer loop 4: {'max_features': 4, 'min_samples_split': 4, 'n_estimators': 500}
+
+Report:
+              precision    recall  f1-score   support
+
+       DSCUT       1.00      1.00      1.00        21
+          EA       0.60      1.00      0.75        24
+          EB       1.00      0.88      0.94        25
+        GDOR       0.95      0.95      0.95        20
+       Noise       1.00      0.33      0.50        24
+      OTHPER       0.88      1.00      0.94        22
+        RRab       1.00      1.00      1.00        21
+
+    accuracy                           0.87       157
+   macro avg       0.92      0.88      0.87       157
+weighted avg       0.92      0.87      0.86       157
+
+
+Average Confusion Matrix over 5 runs:
+[[0.982 0.    0.018 0.    0.    0.    0.   ]
+ [0.    0.901 0.025 0.024 0.042 0.    0.008]
+ [0.008 0.016 0.952 0.016 0.008 0.    0.   ]
+ [0.    0.02  0.049 0.891 0.02  0.02  0.   ]
+ [0.    0.117 0.    0.    0.867 0.017 0.   ]
+ [0.    0.018 0.    0.009 0.009 0.964 0.   ]
+ [0.    0.    0.009 0.    0.028 0.    0.963]]
+
+Std Dev of Confusion Matrix over 5 runs:
+[[0.022 0.    0.022 0.    0.    0.    0.   ]
+ [0.    0.066 0.02  0.048 0.037 0.    0.017]
+ [0.016 0.032 0.047 0.02  0.016 0.    0.   ]
+ [0.    0.04  0.044 0.106 0.04  0.024 0.   ]
+ [0.    0.233 0.    0.    0.267 0.033 0.   ]
+ [0.    0.036 0.    0.017 0.017 0.044 0.   ]
+ [0.    0.    0.018 0.    0.023 0.    0.034]]
+
+Average Feature Importances over 5 runs:
+[0.139 0.092 0.012 0.036 0.026 0.042 0.021 0.038 0.082 0.006 0.053 0.065
+ 0.075 0.06  0.056 0.043 0.012 0.031 0.033 0.035 0.033 0.011]
+
+Std Dev of  Feature Importances over 5 runs:
+[0.006 0.005 0.001 0.002 0.005 0.004 0.002 0.003 0.006 0.    0.004 0.003
+ 0.003 0.003 0.003 0.005 0.001 0.002 0.003 0.005 0.004 0.002]
+
+Confusion Matrix plot saved at /Users/chancehaycock/dev/machine_learning/px402/src/models/som_and_rf_alpha/confusion_matrix_2.pdf
+
+Feature Importance plot saved at /Users/chancehaycock/dev/machine_learning/px402/src/models/som_and_rf_alpha/feature_importance_2.pdf
+
+Overall Model Generalisation Score:
+0.931 +/- 0.0304
+
+
+
+
+Now using cross validation to find optimal hyper-parameters for the whole dataset.
+
+Best parameters for whole data set: {'max_features': 4, 'min_samples_split': 2, 'n_estimators': 300}
+
+
+Model Evaluation Complete.

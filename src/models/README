@@ -1,0 +1,22 @@
+
+# =============================
+#       MODEL WORKFLOW
+# =============================
+
+# Data Prep
+# ==========
+# 0) GAIA Data - gaia_crossmatch.py 
+# 1) period file - Obtain from SJH
+# 2) phasefold - needs 1) - phasefold.py
+# 3) lightcurve_stats - needs 2) - lightcurve_statistics.py
+# 4) Create MASTER table - needs 0), 1), 2), 3) and armstrong_0-4.csv
+#    Master table shouldn't need to be changed once created 
+
+# Model Setup
+# ===========
+
+# 5) Make Training set (list of epics, class, probabilities) - make_training_set.py
+# 6) Obtain cluster centres from plot of training set in make_som.py
+#    Can do this by setting test_campaign_num flag == -1
+# 7) Use make_som.py with found clusters to create SOM_statistics.py
+
