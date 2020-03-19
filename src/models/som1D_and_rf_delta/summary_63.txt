@@ -1,0 +1,258 @@
+================================================================================
+                               SOM1D and Random Forest Model                        
+================================================================================
+
+Using training file: /Users/chancehaycock/dev/machine_learning/px402/src/models/som1D_and_rf_delta/train.csv
+Dropping DJA Class column and using 'class' instead
+       epic_number   Period_1   Period_2  ...  som_index  template_dist   class
+0        201488365   6.734215   0.560758  ...      578.0       0.500731      EA
+1        201893576   0.929943  13.801916  ...      568.0       0.243798      EA
+2        201828402  19.278542  18.185219  ...     1060.0       0.680916   Noise
+3        201738572  13.017493  12.317439  ...     1410.0       0.300861  OTHPER
+4        201387169  18.393849  19.513174  ...     1568.0       1.219162   Noise
+...            ...        ...        ...  ...        ...            ...     ...
+20140    211074799   0.282114  11.688837  ...     1086.0       0.885975   Noise
+20141    210688611   6.139027   7.120552  ...     1428.0       0.198439  OTHPER
+20142    211161378  17.395973  16.500795  ...      714.0       2.812619   Noise
+20143    210494481  11.688837   9.534084  ...     1318.0       0.153496  OTHPER
+20144    210690749  18.185219  13.568312  ...      922.0       2.988041  OTHPER
+
+[20145 rows x 22 columns]
+Shuffling Data...
+
+Using simple cross validation...
+CV Loop (Model Performance Estimation) using 10 folds and a total of 50 classifiers.
+
+Using 19 features:
+
+Period_1
+Period_2
+amp_ratio_21
+abs_magnitude
+bp_rp
+bp_g
+g_rp
+lc_amplitude
+p2p_98
+p2p_mean
+stddev
+kurtosis
+skew
+iqr
+mad
+max_binned_p2p
+mean_binned_p2p
+som_index
+template_dist
+
+Training Classifier 1
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=0).
+
+Training Classifier 2
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=1).
+
+Training Classifier 3
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=2).
+
+Training Classifier 4
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=3).
+
+Training Classifier 5
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=4).
+
+Training Classifier 6
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=5).
+
+Training Classifier 7
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=6).
+
+Training Classifier 8
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=7).
+
+Training Classifier 9
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=8).
+
+Training Classifier 10
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=9).
+
+Training Classifier 11
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=10).
+
+Training Classifier 12
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=11).
+
+Training Classifier 13
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=12).
+
+Training Classifier 14
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=13).
+
+Training Classifier 15
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=14).
+
+Training Classifier 16
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=15).
+
+Training Classifier 17
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=16).
+
+Training Classifier 18
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=17).
+
+Training Classifier 19
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=18).
+
+Training Classifier 20
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=19).
+
+Training Classifier 21
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=20).
+
+Training Classifier 22
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=21).
+
+Training Classifier 23
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=22).
+
+Training Classifier 24
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=23).
+
+Training Classifier 25
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=24).
+
+Training Classifier 26
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=25).
+
+Training Classifier 27
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=26).
+
+Training Classifier 28
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=27).
+
+Training Classifier 29
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=28).
+
+Training Classifier 30
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=29).
+
+Training Classifier 31
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=30).
+
+Training Classifier 32
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=31).
+
+Training Classifier 33
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=32).
+
+Training Classifier 34
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=33).
+
+Training Classifier 35
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=34).
+
+Training Classifier 36
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=35).
+
+Training Classifier 37
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=36).
+
+Training Classifier 38
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=37).
+
+Training Classifier 39
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=38).
+
+Training Classifier 40
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=39).
+
+Training Classifier 41
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=40).
+
+Training Classifier 42
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=41).
+
+Training Classifier 43
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=42).
+
+Training Classifier 44
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=43).
+
+Training Classifier 45
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=44).
+
+Training Classifier 46
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=45).
+
+Training Classifier 47
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=46).
+
+Training Classifier 48
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=47).
+
+Training Classifier 49
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=48).
+
+Training Classifier 50
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=49).
+
+Average Confusion Matrix over 10 runs each on 50 sampled training sets:
+[[0.969 0.    0.024 0.006 0.    0.    0.   ]
+ [0.    0.892 0.101 0.    0.008 0.    0.   ]
+ [0.013 0.069 0.862 0.006 0.    0.05  0.   ]
+ [0.031 0.    0.023 0.874 0.    0.072 0.   ]
+ [0.008 0.008 0.002 0.    0.778 0.204 0.   ]
+ [0.004 0.    0.014 0.01  0.288 0.684 0.   ]
+ [0.    0.    0.    0.    0.    0.    1.   ]]
+
+Std Dev of Confusion Matrix over 10 runs each on 50 sampled training sets:
+[[0.031 0.    0.03  0.019 0.    0.    0.   ]
+ [0.    0.07  0.06  0.    0.023 0.    0.   ]
+ [0.025 0.052 0.083 0.019 0.    0.047 0.   ]
+ [0.052 0.    0.049 0.11  0.    0.056 0.   ]
+ [0.013 0.018 0.006 0.    0.068 0.062 0.   ]
+ [0.008 0.    0.013 0.013 0.08  0.075 0.   ]
+ [0.    0.    0.    0.    0.    0.    0.   ]]
+
+Average Feature Importances over 10 runs each on 50 sampled training sets:
+[0.169 0.081 0.024 0.019 0.013 0.014 0.013 0.043 0.046 0.008 0.058 0.067
+ 0.099 0.061 0.059 0.054 0.017 0.125 0.029]
+
+Std Dev of  Feature Importances over 10 runs each on 50 sampled training sets:
+[0.005 0.004 0.002 0.001 0.001 0.001 0.001 0.002 0.002 0.    0.004 0.002
+ 0.004 0.003 0.002 0.002 0.001 0.006 0.001]
+
+Confusion Matrix plot saved at /Users/chancehaycock/dev/machine_learning/px402/src/models/som1D_and_rf_delta/confusion_matrix_63.pdf
+
+Feature Importance plot saved at /Users/chancehaycock/dev/machine_learning/px402/src/models/som1D_and_rf_delta/feature_importance_63.pdf
+
+=================== Average Cross Validated Scores ==================
+
+
+             Macro AUC Score (OVO): 0.986 +/- 0.0033
+
+          Weighted AUC Score (OVO): 0.976 +/- 0.0054
+
+             Macro AUC Score (OVR): 0.974 +/- 0.0059
+
+          Weighted AUC Score (OVR): 0.948 +/- 0.0115
+
+                    Macro F1 Score: 0.864 +/- 0.0219
+
+                 Weighted F1 Score: 0.806 +/- 0.0272
+
+                 Macro Fbeta Score: 0.866 +/- 0.0210
+
+              Weighted Fbeta Score: 0.809 +/- 0.0273
+
+                    Log Loss Score: 0.447 +/- 0.0400
+
+             Macro Precision Score: 0.869 +/- 0.0207
+
+          Weighted Precision Score: 0.812 +/- 0.0275
+
+                Macro Recall Score: 0.866 +/- 0.0228
+
+             Weighted Recall Score: 0.808 +/- 0.0271
+
+              Model Accuracy Score: 0.808 +/- 0.0271
+

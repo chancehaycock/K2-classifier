@@ -23,10 +23,11 @@ def lightcurve_statistics(campaign_num, detrending):
 	epics_file = '{}/periods/{}/campaign_{}.csv'\
 	              .format(project_dir, detrending, campaign_num)
 	epics_df = pd.read_csv(epics_file)
+
 	epics_df = epics_df[['epic_number']]
 	num_lcs = len(epics_df)
 
-	binned_lc_df = pd.read_csv("{}/phasefold_bins/{}/campaign_{}.csv".format(project_dir,
+	binned_lc_df = pd.read_csv("{}/phasefold_bins/{}/campaign_{}_interpolated.csv".format(project_dir,
 	                                                                detrending, campaign_num))
 	columns = ["epic_number", "lc_amplitude", "p2p_98", "p2p_mean", "stddev",
 	           "kurtosis", "skew", "iqr", "mad", "max_binned_p2p", "mean_binned_p2p"]
@@ -43,11 +44,14 @@ def lightcurve_statistics(campaign_num, detrending):
 
 		epic_num = int(epics_df.iloc[i])
 
+		# CORRUPT FILE
+		if epic_num == 206413104:
+			continue 
+
 		hdul = get_hdul(epic_num, campaign_num, detrending=detrending)
 		# By default chooses PDC
 		times, flux = get_lightcurve(hdul, process_outliers=True, detrending=detrending)
 
-		# XXX - Median Divide - Was not done for campaign 3 and 4.
 		flux_median = np.median(flux)
 		flux /= flux_median
 
@@ -91,8 +95,8 @@ def lightcurve_statistics(campaign_num, detrending):
 
 		diffs = np.diff(binned_values)
 		# XXX Should this be absolute difference????
-		max_binned_p2p = np.nanmax(abs(diffs))
-		mean_binned_p2p = np.nanmean(diffs)
+		max_binned_p2p = np.max(abs(diffs))
+		mean_binned_p2p = np.mean(diffs)
 
 		# Add to files here. Only Prints for now.
 		df.loc[i] = np.zeros(len(columns))
@@ -139,9 +143,15 @@ def main():
 #	lc_statistics(3)
 #	lc_statistics(4)
 #	lightcurve_statistics(1, 'k2sc')
-	lightcurve_statistics(2, 'k2sc')
-	lightcurve_statistics(3, 'k2sc')
-	lightcurve_statistics(4, 'k2sc')
+#	lightcurve_statistics(2, 'k2sc')
+#	lightcurve_statistics(3, 'k2sc')
+#	lightcurve_statistics(4, 'k2sc')
+	lightcurve_statistics(5, 'k2sc')
+	lightcurve_statistics(6, 'k2sc')
+	lightcurve_statistics(7, 'k2sc')
+	lightcurve_statistics(8, 'k2sc')
+	lightcurve_statistics(10, 'k2sc')
+
 
 if __name__ == "__main__":
 	main()

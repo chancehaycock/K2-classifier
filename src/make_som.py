@@ -13,8 +13,15 @@ def get_training_samples(project_dir, detrending, training_file):
 	training_epics_df = pd.read_csv('{}/training_sets/{}/{}.csv'\
 	       .format(project_dir, detrending, training_file), 'r', delimiter=',')
 
+	# Choose 500 OTHPER objects
+	othper_epics = training_epics_df[training_epics_df['Class'] == 'OTHPER'].head(500)
+	training_epics_df = training_epics_df[(training_epics_df['Class'] != ' Noise') & (training_epics_df['Class'] != 'OTHPER')]
+	training_epics_df = training_epics_df.append(othper_epics, ignore_index=True)
+	training_epics_df = training_epics_df.sample(frac=1).reset_index(drop=True)
+	#print(training_epics_df)
+
 	# Get rid of noise and make array of useful epics
-	training_epics = training_epics_df[training_epics_df['Class'] != ' Noise']['epic_number'].to_numpy()
+	training_epics = training_epics_df['epic_number'].to_numpy()
 
 	# Import ALL known phasefolded bins from MASTER table
 	bins_1 = pd.read_csv('{}/tables/{}/campaign_1_master_table.csv'.format(project_dir, detrending))
@@ -54,10 +61,10 @@ def get_som_samples(train_df, train_samples, test_campaign_num, detrending, trai
 		             .format(px402_dir, detrending, test_campaign_num), 'r', delimiter=',')
 		needed_columns = make_bin_columns(64)
 		needed_columns.append('epic_number')
-		needed_columns.append('probability')
-		needed_columns.append('class')
+		if test_campaign_num in [1, 2, 3, 4]:
+			needed_columns.append('probability')
+			needed_columns.append('class')
 		som_samples_df = som_samples_df[[x for x in needed_columns]]
-		# May need a drop NA?
 
 		# Option to test with a known campaign.
 		if (test_campaign_num in [1, 2, 3, 4]):
@@ -74,48 +81,75 @@ def get_som_samples(train_df, train_samples, test_campaign_num, detrending, trai
 	return som_samples_df, som_samples
 
 
-def plot_kohonen_layer(som, n_bins, som_shape, save_plots, project_dir, kohonen_ofile):
+def plot_2D_kohonen_layer(som, n_bins, som_shape, save_plots, project_dir, kohonen_ofile, n_iter):
 
 	print("Plotting Kohonen Layer...")
 	# Get Final Kohonen Layer
 	final_kohonen = som._access_kohonen()
 	# Plot Kohonen Layer
+	pixel_window = 5
 	print("Setting Up Axes")
-	fig, axs = plt.subplots(8, 8, sharex=True, sharey=True,
-	                        gridspec_kw={'hspace': 0, 'wspace':0})
+	fig, axs = plt.subplots(int(som_shape[0]/pixel_window), int(som_shape[1]/pixel_window),
+	               sharex=True, sharey=True, gridspec_kw={'hspace': 0, 'wspace':0})
+	fig.add_subplot(111, frameon=False)
+	# hide tick and tick label of the big axes
+	#plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+	plt.grid(False)
+#	plt.xticks(np.arange(0, 41, step=4), labels=[0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40])
+#	plt.yticks(np.arange(0, 41, step=4), labels=[0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40])
+	plt.xticks(np.arange(0, 41, step=5), labels=[0, 5, 10, 15, 20, 25, 30, 35, 40])
+	plt.yticks(np.arange(0, 41, step=5), labels=[0, 5, 10, 15, 20, 25, 30, 35, 40])
+	plt.xlabel("X Pixel")
+	plt.ylabel("Y Pixel")
 	print("Axes set up.")
 	x = np.linspace (0, 1, n_bins)
 	pal = sbn.color_palette("Blues")
-	for i in range(0, som_shape[0], 5):
-		for j in range(0, som_shape[1], 5):
-			redi = int(i/5)
-			redj = int(j/5)
+	for i in range(0, som_shape[0], pixel_window):
+		for j in range(0, som_shape[1], pixel_window):
+			redi = int(i/pixel_window)
+			redj = int(j/pixel_window)
 			# Rotation 90 degrees anticlockwise due to matplotlib axes 
 			# convention. Now SOM and Kohonen layers can be compared.
-			axi = -redj % int(som_shape[0]/5)
+			axi = -redj % int(som_shape[0]/pixel_window)
 			axj = redi
-			axs[axi, axj].set_ylim(0,1)
 			axs[axi, axj].set_yticklabels([])
 			axs[axi, axj].set_xticklabels([])
 			axs[axi, axj].set_xticks([])
 			axs[axi, axj].set_yticks([])
 			df = pd.DataFrame(final_kohonen[i][j], index=x, columns=['points'])
-			ax = sbn.scatterplot(x=df.index, y='points', s=2.0, hue='points',
+			ax = sbn.scatterplot(x=df.index, y='points', s=5.0, hue='points',
 			                     linewidth=0, data=df, ax=axs[axi, axj],
-			                     c='b', legend=None)
+			                     c='b', legend=None, palette='YlGnBu', hue_norm=(-1, 1))
 			ax.set_ylabel('')    
 			ax.set_xlabel('')
+			axs[axi, axj].set_ylim(0,1)
+			
 
-
-	plt.show()
+#	plt.show()
 	if save_plots:
 		plt.tight_layout()
-		plt.savefig("{}/plots/{}_kohonen_now.eps".format(project_dir, kohonen_ofile), format='eps')
-#	plt.close()
+		plt.savefig("{}/final_report_images/kohonen_2D_niter_{}.pdf".format(project_dir, n_iter), format='pdf')
+		plt.close()
 	return None
 
 
-def process_som_statistics(map, samples_df, som_shape, clusters, project_dir, test_campaign_num, detrending, training_file):
+def process_som_statistics_1D(map, samples_df, project_dir, test_campaign_num, detrending, training_file):
+	som_stats = []
+	for i, curve in enumerate(map):
+		epic = samples_df.iloc[i]['epic_number']
+		if np.isnan(curve[2]):
+			som_stats.append([epic, np.nan, np.nan, np.nan, np.nan, np.nan])
+			continue
+		som_index = curve[0]
+		template_dist = curve[2]
+		som_stats.append([epic, som_index, template_dist])
+	som_columns = ["epic_number", "som_index", "template_dist"]
+	som_df = pd.DataFrame(som_stats, columns=som_columns) 
+	som_df.to_csv('{}/som_statistics/{}/{}/campaign_{}_1D.csv'.format(project_dir, detrending, training_file, test_campaign_num), index=False)
+	return
+
+
+def process_som_statistics_2D(map, samples_df, som_shape, clusters, project_dir, test_campaign_num, detrending, training_file):
 	som_stats = []
 	for i, curve in enumerate(map):
 		epic = samples_df.iloc[i]['epic_number']
@@ -173,12 +207,11 @@ def process_som_statistics(map, samples_df, som_shape, clusters, project_dir, te
 
 	som_columns = ["epic_number", "RRab_dist", "EA_dist", "EB_dist", "GDOR_DSCUT_dist", "template_dist"]
 	som_df = pd.DataFrame(som_stats, columns=som_columns) 
-	som_df.to_csv('{}/som_statistics/{}/{}/campaign_{}.csv'.format(project_dir, detrending, training_file, test_campaign_num), index=False)
+	som_df.to_csv('{}/som_statistics/{}/{}/campaign_{}_2D.csv'.format(project_dir, detrending, training_file, test_campaign_num), index=False)
 	return None
 
-def plot_som(map, samples_df, som_shape, save_plots, project_dir, som_ofile):
+def plot_som(map, samples_df, som_shape, save_plots, project_dir, som_ofile, n_iter, dimension):
 
-	sbn.set(style="white")
 	print("Plotting SOM")
 
 	som_plot = []
@@ -204,16 +237,48 @@ def plot_som(map, samples_df, som_shape, save_plots, project_dir, som_ofile):
 	                         .drop(not_class_rows)
 
 	palette2 = sbn.color_palette("husl", 6)
-	ax = sbn.scatterplot(x='float_x', y='float_y', palette=palette2,
-	                    linewidth=0,  hue='class', s=5, 
-	                    alpha=0.5, data=som_plot_df, legend='brief')
-	plt.xlabel("SOM X Pixel")
-	plt.ylabel("SOM Y Pixel")
-	plt.show()
+	as_hex = palette2.as_hex()
+	palette3 = sbn.color_palette(as_hex[:4])
+	flatui = ["#9b59b6", "#95a5a6", "#3498db", "#e74c3c", "#34495e", "#2ecc71"]
+	palette4 = sbn.color_palette(flatui)
+
+	fig, ax = plt.subplots()#figsize=(10, 1.5))
+#	ax.set_yticklabels([])
+#	ax.set_yticks([])
+
+	markers = ['v', 'X', 'o', 'p', 'd', '^']
+	sbn.scatterplot(x='float_x', y='float_y', palette=palette4, style='class',
+	                    linewidth=0.75,  hue='class', sizes=[30 + 7, 15 + 7, 20 + 7, 25 + 7, 35 + 7, 30 + 7], size='class',
+	                    alpha=1.0, data=som_plot_df, legend='brief', markers=markers)
+
+	som_classes = ['RRab', 'EA', 'EB', 'PULS']
+	clusters_df = pd.DataFrame(columns=['Class', 'x', 'y'])
+#	clusters_x = [12, 16, 7, 32]
+#	clusters_y = [21, 40, 11, 30]
+	clusters_x = [16, 8, 32, 13]
+	clusters_y = [40, 10, 30, 21]
+	clusters_df['Class'] = som_classes
+	clusters_df['x'] = clusters_x
+	clusters_df['y'] = clusters_y 
+
+	if dimension == 2:
+		ax.scatter(clusters_x, clusters_y, s=90.0, c='w', marker='o', edgecolors='k', alpha=0.85, linewidth=1.0)
+
+
+
+
+	plt.xlabel("X Pixel")
+	plt.ylabel("Y Pixel")
+	plt.tight_layout()
+	#plt.show()
 	if save_plots:
-		plt.tight_layout()
 		print("Saving SOM File")
-		plt.savefig("{}/plots/{}_som_now.eps".format(project_dir, som_ofile), format='eps')
+		#plt.savefig("{}/plots/som_plots/{}/som_{}.eps".format(project_dir, som_ofile, n_iter), format='eps')
+		#som_plot_df.to_csv("{}/plots/som_plots/{}/som_plot_data_{}.csv".format(project_dir, som_ofile, n_iter), index=False)
+	#	plt.savefig("{}/som_statistics/k2sc/{}/som_{}D_report.pdf".format(project_dir, som_ofile, dimension), format='pdf')
+		plt.savefig("{}/final_report_images/som_{}D.pdf".format(project_dir, dimension), format='pdf')
+	#	som_plot_df.to_csv("{}/som_statistics/k2sc/{}/som_plot_data_{}D_report.csv".format(project_dir, som_ofile, dimension), index=False)
+#		som_plot_df.to_csv("{}/final_report_images/som_plot_data_{}D_report.csv".format(project_dir, som_ofile, dimension), index=False)
 #	plt.close()
 	return None
 
@@ -235,7 +300,7 @@ def SOM_shape(dimension):
 # and template distance. Also writes to csv.
 def make_2D_SOM_from_lightcurve(test_campaign_num, training_file, dimension=2,
                                 plot_kohonen=False, plot_SOM=False,
-                                write_to_csv=False, save_plots=False, detrending='k2sc'):
+                                write_to_csv=False, save_plots=False, detrending='k2sc', n_iter=25):
 
 	# ===============================
 	# Variables needed for SOM object
@@ -243,9 +308,6 @@ def make_2D_SOM_from_lightcurve(test_campaign_num, training_file, dimension=2,
 
 	# Size of SOM Map. 40x40 for visual. 1600x1 for RF
 	som_shape = SOM_shape(dimension)
-
-	# Chose at complete random - seems sufficient
-	n_iter = 25
 
 	# Number of features (Will be number of bins of phase folded lightcurve)
 	n_bins = 64
@@ -261,8 +323,12 @@ def make_2D_SOM_from_lightcurve(test_campaign_num, training_file, dimension=2,
 	som_samples_df, som_samples = get_som_samples(train_df, train_samples, test_campaign_num, detrending, training_file)
 
 	# Here, we have a som_samples array ready for mapping with 64 bins.
-	print(som_samples_df)
-	print(som_samples)
+#	print(train_df)
+#	print("TRAIN SAMPLES")
+#	print(train_samples)
+#	print("SOM SAMPLES")
+#	print(som_samples)
+#	print(som_samples_df)
 
 	# ===============================
 	#      Initialise SOM Object 
@@ -271,7 +337,7 @@ def make_2D_SOM_from_lightcurve(test_campaign_num, training_file, dimension=2,
 	# Initial Distribution in Kohonen Layer. Uniform.
 	def init(som_samples):
 		# Add seed for reproducible kohonen layer. Easier than saving it.
-		np.random.seed(5)
+		np.random.seed(6)
 		return np.random.uniform(0, 2, size=(som_shape[0], som_shape[1], n_bins))
 
 	# Initialise SOM Object
@@ -291,9 +357,8 @@ def make_2D_SOM_from_lightcurve(test_campaign_num, training_file, dimension=2,
 	#  At this point, SOM is trained, and there are templates setup.
 	# The user has the option to plot it here.
 
-	if (plot_kohonen):
-		plot_kohonen_layer(som, n_bins, som_shape, save_plots, project_dir, kohonen_ofile=training_file)
-
+	if (plot_kohonen and dimension == 2):
+		plot_2D_kohonen_layer(som, n_bins, som_shape, save_plots, project_dir, kohonen_ofile=training_file, n_iter=n_iter)
 
 	# ===============================
 	# Map test samples onto trained SOM
@@ -310,7 +375,7 @@ def make_2D_SOM_from_lightcurve(test_campaign_num, training_file, dimension=2,
 	# ==========================
 
 	if (plot_SOM):
-		plot_som(map, som_samples_df, som_shape, save_plots, project_dir, som_ofile=training_file)
+		plot_som(map, som_samples_df, som_shape, save_plots, project_dir, som_ofile=training_file, n_iter=n_iter, dimension=dimension)
 
 
 	# ==========================
@@ -320,16 +385,23 @@ def make_2D_SOM_from_lightcurve(test_campaign_num, training_file, dimension=2,
 	# Need to return arry of len(som_samples) with entries
 	# [rr_dist, ea_dist, eb_dist, gdor/dscut_dist, template_dist]
 
-	# Judged by eye - using seed=5
-	# RRab, EA, EB, GDOR/DSCUT
-#	clusters = [[11, 13], [31, 21], [31, 6], [13, 33]] - INTERIM
-	clusters = [[13, 29], [29, 29], [1, 29], [9, 9]] # alpha
+	#          [ [RRab] ,   [EA],     [EB],  [GDOR/DSCUT]]
+#	clusters = [[11, 13], [31, 21], [31, 6], [13, 33]] - INTERIM - seed = 5
+#	clusters = [[13, 29], [29, 29], [1, 29], [9, 9]]   # alpha - seed = 5
+#	clusters = [[26, 33], [29, 8], [22, 21], [7, 36]]  # beta - seed = 10
+#	clusters = [[35, 38], [12, 2], [23, 35], [33, 15]] # gamma - seed = 6
+#	clusters = [[36, 6], [10, 40], [5, 6], [20, 30]]   # point4 - seed = 6
+	clusters = [[12, 21], [16, 40], [7, 11], [32, 30]] # delta - seed = 6
 
+	print(map)
 	if write_to_csv:
 		if test_campaign_num == -1:
 			print("Invalid Test Campaign Number. Exiting...")
 			return
-		process_som_statistics(map, som_samples_df, som_shape, clusters, project_dir, test_campaign_num, detrending, training_file)
+		if dimension == 2:
+			process_som_statistics_2D(map, som_samples_df, som_shape, clusters, project_dir, test_campaign_num, detrending, training_file)
+		else:
+			process_som_statistics_1D(map, som_samples_df, project_dir, test_campaign_num, detrending, training_file)
 
 	# Return dataframe for possible later work.
 	print("Program Complete.")
@@ -348,16 +420,105 @@ def main():
 	# =================================
 	training_interim = "c34_clean_1"
 
-	alpha_training = "c1-4_alpha"
+	alpha = "c1-4_alpha"
+
+	beta = "c1-4_beta"
+
+	gamma = "c1-4_gamma"
+
+	point4 = "c1-4_point4"
+
+	delta = 'c1-4_delta'
 
 	# Make SOM
 	# XXX -1 flag in test_campaign_num is a flag to plot the training set!
 	# This needs to be done first to get the cluster centres.
-	make_2D_SOM_from_lightcurve(test_campaign_num=3, training_file='c1-4_alpha',
-	                            dimension=2, detrending='k2sc',
-	                            plot_kohonen=True, plot_SOM=True,
-	                            save_plots=False, write_to_csv=False)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=1, training_file=delta,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=2, training_file=delta,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=3, training_file=delta,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=4, training_file=delta,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=3, training_file=point4,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=4, training_file=point4,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
 
+#	make_2D_SOM_from_lightcurve(test_campaign_num=6, training_file=delta,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=7, training_file=delta,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=8, training_file=delta,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=10, training_file=delta,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+
+#	make_2D_SOM_from_lightcurve(test_campaign_num=-1, training_file=delta,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=True, plot_SOM=False,
+#	                            save_plots=True, write_to_csv=False, n_iter=1)
+
+#	make_2D_SOM_from_lightcurve(test_campaign_num=-1, training_file=delta,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=True, plot_SOM=False,
+#	                            save_plots=True, write_to_csv=False, n_iter=2)
+
+#	make_2D_SOM_from_lightcurve(test_campaign_num=-1, training_file=delta,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=True, plot_SOM=False,
+#	                            save_plots=True, write_to_csv=False, n_iter=3)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=-1, training_file=delta,
+#	                            dimension=2, detrending='k2sc',
+#	                            plot_kohonen=True, plot_SOM=False,
+#	                            save_plots=True, write_to_csv=False, n_iter=4)
+
+	make_2D_SOM_from_lightcurve(test_campaign_num=-1, training_file=delta,
+	                            dimension=2, detrending='k2sc',
+	                            plot_kohonen=False, plot_SOM=True,
+	                            save_plots=True, write_to_csv=False, n_iter=25)
+
+#	make_2D_SOM_from_lightcurve(test_campaign_num=7, training_file=delta,
+#	                            dimension=1, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=8, training_file=delta,
+#	                            dimension=1, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=10, training_file=delta,
+#	                            dimension=1, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=5, training_file=delta,
+#	                            dimension=1, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
+#	make_2D_SOM_from_lightcurve(test_campaign_num=6, training_file=delta,
+#	                            dimension=1, detrending='k2sc',
+#	                            plot_kohonen=False, plot_SOM=False,
+#	                            save_plots=False, write_to_csv=True, n_iter=25)
 
 if __name__ == "__main__":
 	main()

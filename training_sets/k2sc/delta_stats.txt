@@ -1,0 +1,21 @@
+Original Number of   RRab: 127
+     New Number of   RRab: 119
+
+Original Number of     EA: 155
+     New Number of     EA: 129
+
+Original Number of     EB: 190
+     New Number of     EB: 159
+
+Original Number of  DSCUT: 212
+     New Number of  DSCUT: 164
+
+Original Number of   GDOR: 150
+     New Number of   GDOR: 126
+
+Original Number of  Noise: 10834
+     New Number of  Noise: 10956
+
+Original Number of OTHPER: 8478
+     New Number of OTHPER: 8493
+

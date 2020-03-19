@@ -35,7 +35,9 @@ def make_model_table():
 	som_train = som_master[som_master['epic_number'].isin(training_epics)]
 
 	train_df = data_train.merge(som_train, how='left', on='epic_number')
-	train_df.to_csv('{}/src/models/som_and_rf_alpha/train.csv'.format(project_dir), index=False)
+	# Drop these for now
+	train_df = train_df.drop('k2_teff', axis=1).drop('k2_rad', axis=1).drop('k2_mass', axis=1)
+	train_df.to_csv('{}/src/models/som_and_rf_alpha/train_FULL.csv'.format(project_dir), index=False)
 	print('Model Table Created!')
 	print(len(train_df.columns))
 	return
@@ -50,6 +52,7 @@ def make_model_table():
 
 def SOM_and_RF_alpha():
 
+	model_label = 'alpha'
 	model_number = sys.argv[1]
 
 	print_model_type("SOM and Random Forest")
@@ -72,7 +75,7 @@ def SOM_and_RF_alpha():
 	parameters = {'n_estimators':[300],\
 	         'min_samples_split':[3],\
 	              'max_features':[4] }
-	evaluate_model(model_number, blank_classifier, df, parameters, features, in_cv=5, out_cv=5)
+	evaluate_model(model_label, model_number, blank_classifier, df, parameters, features, in_cv=5, out_cv=5)
 
 	# Do learning curve analysis here
 
@@ -84,8 +87,8 @@ def SOM_and_RF_alpha():
 # =============================================================================
 
 def main():
-#	make_model_table()
-	SOM_and_RF_alpha()
+	make_model_table()
+#	SOM_and_RF_alpha()
 
 if __name__ == "__main__":
 	main()

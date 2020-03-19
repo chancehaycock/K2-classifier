@@ -80,6 +80,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sbn
+sbn.set(style="ticks", palette="muted", color_codes=True)
 import os                                                                       
 import sys
 
@@ -94,16 +95,21 @@ def delete_useless_flags(times, flux, mflags, err, detrending):
 	if detrending == "k2sc":
 		for i, flag in enumerate(mflags):
 
-			# K2 Quality Flags
-			fcond1 = 2**0 <= flag <= 2**(0 + 1) - 1
-			# Upwards Outlier
-			fcond2 = 2**3 <= flag <= 2**(3 + 1) - 1
-			# Non-Finite Flux
-			fcond3 = 2**5 <= flag <= 2**(5 + 1) - 1
-
-			if fcond1 or fcond2 or fcond3:
+			if flag != 0 and flag != 16:
 				del_array.append(i)
 
+#			# Remove negative flux points
+#			pos_flux_cond = flux[i] < 0
+#
+#			# K2 Quality Flags
+#			fcond1 = 2**0 <= flag <= 2**(0 + 1) - 1
+#			# Upwards Outlier
+#			fcond2 = 2**3 <= flag <= 2**(3 + 1) - 1
+#			# Non-Finite Flux
+#			fcond3 = 2**5 <= flag <= 2**(5 + 1) - 1
+
+#			if pos_flux_cond or fcond1 or fcond2 or fcond3:
+#				del_array.append(i)
 
 		del_flux = np.delete(flux, del_array)
 		del_times = np.delete(times, del_array)
@@ -135,6 +141,11 @@ def delete_useless_flags(times, flux, mflags, err, detrending):
 def get_hdul(epic_num, campaign_num, detrending='k2sc'):
 	path_to_dir=""
 	version_suffix = ""
+	camp_10_add = ""
+	camp_10_rem = "0"
+	if campaign_num == 10:
+		camp_10_add = "2"
+		camp_10_rem = ""
 
 	# K2sc has lc's ...v2.fits, Everest has ...v2.0_fits
 	if detrending == 'everest':
@@ -143,8 +154,8 @@ def get_hdul(epic_num, campaign_num, detrending='k2sc'):
 	path_to_dir = "{}/lightcurve_data/{}/campaign_{}"\
 		              .format(project_dir, detrending, campaign_num)
 
-	return fits.open('{}/hlsp_{}_k2_llc_{}-c0{}_kepler_v2{}_lc.fits'\
-	                 .format(path_to_dir, detrending, epic_num, campaign_num, version_suffix))
+	return fits.open('{}/hlsp_{}_k2_llc_{}-c{}{}{}_kepler_v2{}_lc.fits'\
+	                 .format(path_to_dir, detrending, epic_num, camp_10_rem, campaign_num, camp_10_add, version_suffix))
 
 
 def get_lightcurve(hdul, lc_type='PDC', process_outliers=True, detrending="k2sc", include_errors=False):
@@ -173,7 +184,7 @@ def get_lightcurve(hdul, lc_type='PDC', process_outliers=True, detrending="k2sc"
 		# here. Also only lightcurve data is on hdul[1]
 		lc_type_index = 1
 		# EVEREST corrected flux
-		flux = hdul[lc_type_indx].data['FRAW']
+		flux = hdul[lc_type_indx].data['FCOR']
 		times = hdul[lc_type_indx].data['TIME']
 		mflags = hdul[lc_type_indx].data['QUALITY']
 		err = hdul[lc_type_indx].data['FRAW_ERR']
@@ -217,6 +228,17 @@ def k2sc_period_estimate(hdul, lc_type="PDC"):
 def main():
 	test_epics = [205898099, 205905261, 205906121, 205908778, 205910844, 205912245,
                   205926404, 205940923, 205941422]
+	gdor_test = 205075874
+
+#	hdul = get_hdul(gdor_test, 2)
+#	times, flux = get_lightcurve(hdul)
+#	for _ in flux:
+#		if _ < 0:
+#			print(_)
+#	plt.scatter(times, flux, s=0.5)
+#	plt.show()
+	hdul = get_hdul(gdor_test, 2)
+	print(hdul[1].header)
 
 
 if __name__ == "__main__":

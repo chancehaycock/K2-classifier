@@ -3,6 +3,7 @@
 # in the K2SC case, however there are many more available flags for EVEREST
 # data.
 
+from matplotlib.ticker import FormatStrFormatter
 # =================================================================
 #                    Available EVEREST Flags
 # =================================================================
@@ -91,9 +92,152 @@ def plot_k2sc_vs_everest():
 			print("{0:.2f}% complete.".format(i * 100 / len(df['epic_number'])))
 
 
+def k2sc_ever():
+	known_file = '{}/known/armstrong_0_to_4.csv'.format(project_dir)
+	df = pd.read_csv(known_file)
+	epic_num = 206032188
+	epic_num = 201180520
+	epic_num = 206032188
+	epic_num = 206096844
+	epic_num = 206145148
+	class_row = df[df['epic_number'] == epic_num]
+	campaign_num=3
+
+	k2sc_hdul = get_hdul(epic_num, campaign_num, detrending='k2sc')
+	ever_hdul = get_hdul(epic_num, campaign_num, detrending='everest')
+	k2sc_times1, k2sc_flux1 = get_lightcurve(k2sc_hdul, process_outliers=False, detrending='k2sc')
+	k2sc_times2, k2sc_flux2 = get_lightcurve(k2sc_hdul, process_outliers=True, detrending='k2sc')
+	ever_times1, ever_flux1 = get_lightcurve(ever_hdul, process_outliers=True, detrending='everest')
+
+	pdc_flux = k2sc_hdul[1].data['flux']
+	pdc_times = k2sc_hdul[1].data['time']
+	k2sc1_median = np.nanmedian(k2sc_flux1)
+	k2sc2_median = np.nanmedian(k2sc_flux2)
+	pdc_median = np.nanmedian(pdc_flux)
+	ever_median = np.nanmedian(ever_flux1)
+
+	k2sc_flux1 /= k2sc1_median
+	k2sc_flux2 /= k2sc2_median
+	pdc_flux /= pdc_median
+	ever_flux1 /= ever_median
+
+	fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, gridspec_kw={'hspace': 0.0})
+
+#	sbn.scatterplot(x='x',y='y', ax=ax1, data=pdc_df)
+#	sbn.scatterplot(x='x',y='y', ax=ax1, data=k2sc1_df)
+#	sbn.scatterplot(x='x',y='y', ax=ax2, data=k2sc2_df)
+	ax1.scatter(pdc_times, pdc_flux, s=0.25, label='pdc', color='black')
+#	ax1.plot(pdc_times, pdc_flux, linewidth=0.05, label='pdc', color='black', alpha=0.6)
+#	ax1.scatter(k2sc_times1, k2sc_flux1, s=0.25, label='k2sc', color='red', alpha=0.8)
+	ax2.scatter(k2sc_times2, k2sc_flux2, s=0.25, label='k2sc - outliers removed', color='blue', alpha=0.65)
+#	ax2.plot(k2sc_times2, k2sc_flux2, linewidth=0.05, label='k2sc - outliers removed', color='blue', alpha=0.65)
+	ax3.scatter(ever_times1, ever_flux1, s=0.25, label='k2sc - outliers removed', color='red', alpha=0.65)
+#	ax3.plot(ever_times1, ever_flux1, linewidth=0.05, label='k2sc - outliers removed', color='red', alpha=0.65)
+
+	
+#	# Add intermediate step here of fitting 3rd order polynomial
+#	# to remove long term periodic variations to help the phasefolds etc
+#	coefficients = np.polyfit(k2sc_times2, k2sc_flux2, 3,cov=False)
+#	polynomial = np.polyval(coefficients, k2sc_times2)
+#	#subtracts this polynomial from the median divided flux
+#	poly_flux = flux-polynomial+flux_median
+#
+#	ax2.plot(k2sc_times2, k2sc_flux2)
+#
+	#ax1.set_ylabel('PDC Relative Flux')
+	ax2.set_ylabel('Relative Flux')
+	#ax3.set_ylabel('EVEREST Relative Flux')
+	ax3.set_xlabel("Time (BJD - 2454833)")
+	ax3.yaxis.set_major_formatter(FormatStrFormatter('%1.3f'))
+
+
+	#plt.tight_layout()
+#	plt.show()
+	plt.savefig('{}/final_report_images/ever_vs_k2sc_scatter.pdf'.format(project_dir), format='pdf')
+	plt.close()
+
+	
+def k2sc_outlier_poly():
+	known_file = '{}/known/armstrong_0_to_4.csv'.format(project_dir)
+	df = pd.read_csv(known_file)
+	epic_num = 206032188
+	epic_num = 201180520
+	epic_num = 206032188
+	epic_num = 206096844
+	epic_num = 206145148
+	epic_num = 201222038
+	campaign_num = 1
+	class_row = df[df['epic_number'] == epic_num]
+
+	k2sc_hdul = get_hdul(epic_num, campaign_num, detrending='k2sc')
+	k2sc_times1, k2sc_flux1 = get_lightcurve(k2sc_hdul, process_outliers=False, detrending='k2sc')
+	k2sc_times2, k2sc_flux2 = get_lightcurve(k2sc_hdul, process_outliers=True, detrending='k2sc')
+
+	k2sc1_median = np.nanmedian(k2sc_flux1)
+	k2sc2_median = np.nanmedian(k2sc_flux2)
+
+	k2sc_flux1 /= k2sc1_median
+	k2sc_flux2 /= k2sc2_median
+
+#	# Add intermediate step here of fitting 3rd order polynomial
+#	# to remove long term periodic variations to help the phasefolds etc
+	coefficients = np.polyfit(k2sc_times2, k2sc_flux2, 3,cov=False)
+	polynomial = np.polyval(coefficients, k2sc_times2)
+	#subtracts this polynomial from the median divided flux
+	poly_flux = k2sc_flux2-polynomial + 1
+
+	fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, gridspec_kw={'hspace': 0.15}, figsize=(10, 5))
+
+	ax1.scatter(k2sc_times1, k2sc_flux1, s=0.35, label='K2SC Detrended Lightcurve', color='black')
+	ax2.scatter(k2sc_times2, k2sc_flux2, s=0.35, color='black')
+	ax2.plot(k2sc_times2, polynomial, linewidth=2.5, label='3rd Order Polynomial', color='red', alpha=0.55)
+	ax3.scatter(k2sc_times2, poly_flux, s=0.35, label='Final Lightcurve', color='black')
+
+	print(len(k2sc_flux1))
+	print(len(k2sc_flux2))
+	outlier_times = []
+	outlier_flux = []
+	for i, point in enumerate(k2sc_flux1):
+		if k2sc_times1[i] not in k2sc_times2 and not np.isnan(point):
+			outlier_times.append(k2sc_times1[i])
+			outlier_flux.append(point)
+	print(outlier_times)
+	print(outlier_flux)
+	print()
+	print(len(outlier_times))
+	print(len(outlier_flux))
+	ax2.scatter(outlier_times, outlier_flux, s=5.0, color='blue', alpha=0.6, marker='^', label='Outliers')
+
+
+
+	
+	#ax1.set_ylabel('K2SC Relative Flux')
+	ax2.set_ylabel('Relative Flux')
+	#ax3.set_ylabel('EVEREST Relative Flux')
+	ax3.set_xlabel("Time (BJD - 2454833)")
+	ax3.yaxis.set_major_formatter(FormatStrFormatter('%1.3f'))
+
+	#ax1.legend(loc='lower right')
+	#ax2.legend(loc='lower right')
+	#ax3.legend(loc='lower right')
+
+	ax1.set_ylim([0.95, 1.05])
+	ax2.set_ylim([0.95, 1.05])
+	ax3.set_ylim([0.95, 1.05])
+
+	plt.tight_layout()
+#	plt.show()
+	plt.savefig('{}/final_report_images/k2sc_outlier_long.pdf'.format(project_dir), format='pdf')
+	plt.close()
+
+
+
+
 
 def main():
-	plot_k2sc_vs_everest()
+#	plot_k2sc_vs_everest()
+	#k2sc_ever()
+	k2sc_outlier_poly()
 
 if __name__ == "__main__":
 	main()

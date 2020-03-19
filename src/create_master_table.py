@@ -27,7 +27,7 @@ from kepler_data_utilities import *
 	# - 5) Classes and Probabilites - from armstong_0_to_4.csv
 
 # Array of gaia features to be used (Example for now)
-gaia_features = ['epic_number', 'k2_teff', 'k2_rad', 'k2_mass', 'abs_magnitude'] 
+gaia_features = ['epic_number', 'abs_magnitude', 'bp_rp', 'bp_g', 'g_rp'] 
 
 
 def create_table(campaign_num, detrending):
@@ -61,7 +61,7 @@ def create_table(campaign_num, detrending):
 	lc_stats_df = pd.read_csv(lc_stats_file, low_memory=False)
 
 	# 4) Phasefold Values
-	phasefold_file = '{}/phasefold_bins/{}/campaign_{}.csv'\
+	phasefold_file = '{}/phasefold_bins/{}/campaign_{}_interpolated.csv'\
 	                 .format(project_dir, detrending, campaign_num)
 	phasefold_df = pd.read_csv(phasefold_file, low_memory=False)
 
@@ -79,6 +79,9 @@ def create_table(campaign_num, detrending):
 
 	add_columns = True
 	for i, epic in enumerate(period_df['epic_number']):
+		# XXX issue epic
+		if epic == 206413104:
+			continue
 
 		# Reduce dataframes to rows of only the interested epic. 
 		# All should be non-empty apart from 4) which has delted entries with
@@ -143,11 +146,14 @@ def create_table(campaign_num, detrending):
 def main():
 	# Creates table of campaign(x) EPICS with columns:
 	# period, etc...
-	create_table(1, 'k2sc')
-	create_table(2, 'k2sc')
-	create_table(3, 'k2sc')
-	create_table(4, 'k2sc')
-#	create_table(5)
+#	create_table(1, 'k2sc')
+#	create_table(2, 'k2sc')
+#	create_table(3, 'k2sc')
+#	create_table(4, 'k2sc')
+	create_table(10, 'k2sc')
+	create_table(6, 'k2sc')
+	create_table(7, 'k2sc')
+	create_table(8, 'k2sc')
 	print('Program complete.')
 
 if __name__ == "__main__":

@@ -1,0 +1,195 @@
+ ================================================================================
+                               SOM and Random Forest Model                        
+================================================================================
+
+Using training file: /Users/chancehaycock/dev/machine_learning/px402/src/models/som_and_rf_beta/train.csv
+
+Using nested cross validation...
+Outer Loop (Model Performance Estimation) using 5 folds. Random State: 123
+Inner Loop (Hyper-parameter optimisation) using 5 folds. Random State: 123
+
+Using 22 features:
+
+Period_1
+Period_2
+amp_ratio_21
+abs_magnitude
+bp_rp
+bp_g
+g_rp
+lc_amplitude
+p2p_98
+p2p_mean
+stddev
+kurtosis
+skew
+iqr
+mad
+max_binned_p2p
+mean_binned_p2p
+RRab_dist
+EA_dist
+EB_dist
+GDOR_DSCUT_dist
+template_dist
+
+Inner loop is optimising over parameter space:
+{'n_estimators': [300, 400, 500, 600], 'min_samples_split': [2, 3, 4, 5, 6], 'max_features': [4, 5, 6, 7, 8]}
+
+
+Best Parameters for outer loop 0: {'max_features': 4, 'min_samples_split': 2, 'n_estimators': 400}
+
+Report:
+              precision    recall  f1-score   support
+
+       DSCUT       1.00      1.00      1.00        25
+          EA       1.00      0.85      0.92        26
+          EB       0.84      1.00      0.91        26
+        GDOR       0.92      0.88      0.90        25
+       Noise       0.96      0.92      0.94        25
+      OTHPER       1.00      1.00      1.00        26
+        RRab       0.92      0.96      0.94        25
+
+    accuracy                           0.94       178
+   macro avg       0.95      0.94      0.94       178
+weighted avg       0.95      0.94      0.94       178
+
+Best Parameters for outer loop 1: {'max_features': 4, 'min_samples_split': 3, 'n_estimators': 300}
+
+Report:
+              precision    recall  f1-score   support
+
+       DSCUT       1.00      0.88      0.93        24
+          EA       0.75      0.84      0.79        25
+          EB       0.93      1.00      0.96        27
+        GDOR       1.00      0.64      0.78        25
+       Noise       0.81      1.00      0.90        26
+      OTHPER       0.96      1.00      0.98        25
+        RRab       1.00      1.00      1.00        26
+
+    accuracy                           0.91       178
+   macro avg       0.92      0.91      0.91       178
+weighted avg       0.92      0.91      0.91       178
+
+Best Parameters for outer loop 2: {'max_features': 6, 'min_samples_split': 2, 'n_estimators': 400}
+
+Report:
+              precision    recall  f1-score   support
+
+       DSCUT       1.00      0.96      0.98        25
+          EA       0.85      0.92      0.88        25
+          EB       0.96      0.85      0.90        26
+        GDOR       1.00      0.96      0.98        24
+       Noise       0.80      0.92      0.86        26
+      OTHPER       1.00      0.88      0.94        25
+        RRab       0.89      0.96      0.93        26
+
+    accuracy                           0.92       177
+   macro avg       0.93      0.92      0.92       177
+weighted avg       0.93      0.92      0.92       177
+
+Best Parameters for outer loop 3: {'max_features': 4, 'min_samples_split': 5, 'n_estimators': 600}
+
+Report:
+              precision    recall  f1-score   support
+
+       DSCUT       0.92      0.92      0.92        25
+          EA       0.87      0.80      0.83        25
+          EB       0.96      0.92      0.94        26
+        GDOR       0.86      0.96      0.91        25
+       Noise       0.82      0.92      0.87        25
+      OTHPER       1.00      0.92      0.96        26
+        RRab       0.96      0.92      0.94        25
+
+    accuracy                           0.91       177
+   macro avg       0.91      0.91      0.91       177
+weighted avg       0.91      0.91      0.91       177
+
+Best Parameters for outer loop 4: {'max_features': 4, 'min_samples_split': 3, 'n_estimators': 500}
+
+Report:
+              precision    recall  f1-score   support
+
+       DSCUT       0.93      1.00      0.96        25
+          EA       0.88      0.92      0.90        25
+          EB       0.96      0.92      0.94        26
+        GDOR       0.89      0.96      0.92        25
+       Noise       0.91      0.84      0.87        25
+      OTHPER       1.00      0.96      0.98        26
+        RRab       1.00      0.96      0.98        25
+
+    accuracy                           0.94       177
+   macro avg       0.94      0.94      0.94       177
+weighted avg       0.94      0.94      0.94       177
+
+
+Average Confusion Matrix over 5 runs:
+[[0.951 0.    0.016 0.016 0.017 0.    0.   ]
+ [0.    0.865 0.031 0.031 0.064 0.    0.008]
+ [0.015 0.023 0.938 0.015 0.    0.    0.008]
+ [0.016 0.056 0.024 0.88  0.016 0.008 0.   ]
+ [0.    0.04  0.    0.008 0.921 0.    0.032]
+ [0.    0.015 0.    0.    0.032 0.953 0.   ]
+ [0.    0.    0.008 0.    0.032 0.    0.96 ]]
+
+Std Dev of Confusion Matrix over 5 runs:
+[[0.048 0.    0.02  0.032 0.033 0.    0.   ]
+ [0.    0.047 0.029 0.029 0.048 0.    0.016]
+ [0.019 0.046 0.058 0.019 0.    0.    0.015]
+ [0.02  0.112 0.048 0.124 0.02  0.016 0.   ]
+ [0.    0.044 0.    0.016 0.051 0.    0.03 ]
+ [0.    0.031 0.    0.    0.047 0.046 0.   ]
+ [0.    0.    0.016 0.    0.03  0.    0.025]]
+
+Average Feature Importances over 5 runs:
+[0.139 0.091 0.012 0.037 0.02  0.019 0.019 0.033 0.075 0.007 0.043 0.054
+ 0.072 0.056 0.046 0.071 0.017 0.051 0.041 0.042 0.033 0.022]
+
+Std Dev of  Feature Importances over 5 runs:
+[0.01  0.002 0.001 0.003 0.002 0.003 0.002 0.003 0.005 0.001 0.005 0.003
+ 0.004 0.002 0.004 0.006 0.001 0.006 0.003 0.008 0.004 0.003]
+
+Confusion Matrix plot saved at /Users/chancehaycock/dev/machine_learning/px402/src/models/som_and_rf_beta/confusion_matrix_1.pdf
+
+Feature Importance plot saved at /Users/chancehaycock/dev/machine_learning/px402/src/models/som_and_rf_beta/feature_importance_1.pdf
+
+=================== Average Cross Validated Scores ==================
+
+
+             Macro AUC Score (OVO): 0.992 +/- 0.0037
+
+          Weighted AUC Score (OVO): 0.992 +/- 0.0036
+
+             Macro AUC Score (OVR): 0.992 +/- 0.0037
+
+          Weighted AUC Score (OVR): 0.992 +/- 0.0035
+
+                    Macro F1 Score: 0.924 +/- 0.0147
+
+                 Weighted F1 Score: 0.924 +/- 0.0145
+
+                 Macro Fbeta Score: 0.927 +/- 0.0136
+
+              Weighted Fbeta Score: 0.927 +/- 0.0135
+
+                    Log Loss Score: 0.337 +/- 0.0846
+
+             Macro Precision Score: 0.930 +/- 0.0125
+
+          Weighted Precision Score: 0.930 +/- 0.0125
+
+                Macro Recall Score: 0.924 +/- 0.0146
+
+             Weighted Recall Score: 0.924 +/- 0.0141
+
+              Model Accuracy Score: 0.924 +/- 0.0141
+
+
+
+
+Now using cross validation to find optimal hyper-parameters for the whole dataset.
+
+Best parameters for whole data set: {'max_features': 4, 'min_samples_split': 4, 'n_estimators': 300}
+
+
+Model Evaluation Complete.

@@ -1,0 +1,84 @@
+================================================================================
+                               SOM and Random Forest Model                        
+================================================================================
+
+Using training file: /Users/chancehaycock/dev/machine_learning/px402/src/models/som_and_rf_delta/train.csv
+Dropping DJA Class column and using 'Class' instead
+       epic_number   Period_1  ...  template_dist   class
+0        201488365   6.734215  ...       0.846620      EA
+1        201893576   0.929943  ...       0.292683      EA
+2        201828402  19.278542  ...       0.627429   Noise
+3        201738572  13.017493  ...       0.187259  OTHPER
+4        201387169  18.393849  ...       1.040303   Noise
+...            ...        ...  ...            ...     ...
+20140    211074799   0.282114  ...       0.619107   Noise
+20141    210688611   6.139027  ...       0.169998  OTHPER
+20142    211161378  17.395973  ...       1.726620   Noise
+20143    210494481  11.688837  ...       0.134297  OTHPER
+20144    210690749  18.185219  ...       2.345101  OTHPER
+
+[20145 rows x 25 columns]
+
+Using simple cross validation...
+CV Loop (Model Performance Estimation) using 5 folds and a total of 15 classifiers.
+
+Using 22 features:
+
+Period_1
+Period_2
+amp_ratio_21
+abs_magnitude
+bp_rp
+bp_g
+g_rp
+lc_amplitude
+p2p_98
+p2p_mean
+stddev
+kurtosis
+skew
+iqr
+mad
+max_binned_p2p
+mean_binned_p2p
+RRab_dist
+EA_dist
+EB_dist
+GDOR_DSCUT_dist
+template_dist
+
+Training Classifier 1
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=0).
+
+Training Classifier 2
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=1).
+
+Training Classifier 3
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=2).
+
+Training Classifier 4
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=3).
+
+Training Classifier 5
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=4).
+
+Training Classifier 6
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=5).
+
+Training Classifier 7
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=6).
+
+Training Classifier 8
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=7).
+
+Training Classifier 9
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=8).
+
+Training Classifier 10
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=9).
+
+Training Classifier 11
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=10).
+
+Training Classifier 12
+Downsampling OTHPER and Noise to 500 members using df.sample(random_state=11).

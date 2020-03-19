@@ -39,6 +39,12 @@ def phasefold(campaign_num, detrending, process_outliers=True, write_to_csv=Fals
 	periods_file = '{}/periods/{}/campaign_{}.csv'.format(project_dir, detrending,
 	                                                      campaign_num)
 	df = pd.read_csv(periods_file)
+
+	# XXX - Remove any entries tyhat DONT HAVE A PERIOD - eg. c3 206413104 FILE DOWNLOAD CORRUPTION
+	# XXX NEEDS TO BE REMOVED BEFORE RUNNING ON OTHER CAMPAIGNS
+	if campaign_num == 3:
+		df = df[np.isfinite(df['Period_1'])]
+
 	df = df[['epic_number', 'Period_1']]
 	num_lcs = len(df['epic_number'])
 
@@ -73,95 +79,90 @@ def phasefold(campaign_num, detrending, process_outliers=True, write_to_csv=Fals
 					star_class = ""
 					probability = -1
 
-			# Restriction on the max period here. Any period greater than 20
-			# does not have enough periodic information over the observation
-			# period of 80 days. We therefore restrict our research to identified
-			# periods of less than 20 days.
-			if period < 20.0:
-				# Processing of the lightcurve begins here
-				hdul = get_hdul(epic_num, campaign_num, detrending=detrending)
-				# By default chooses PDC
-				times, flux = get_lightcurve(hdul, process_outliers=process_outliers,
-				                             detrending=detrending)
-				flux_median = np.median(flux)
+			# Processing of the lightcurve begins here
+			hdul = get_hdul(epic_num, campaign_num, detrending=detrending)
+			# By default chooses PDC
+			times, flux = get_lightcurve(hdul, process_outliers=process_outliers,
+			                             detrending=detrending)
+			flux_median = np.median(flux)
 
-				# Add intermediate step here of fitting 3rd order polynomial
-				# to remove long term periodic variations to help the phasefolds etc
-				coefficients = np.polyfit(times,flux,3,cov=False)
-				polynomial = np.polyval(coefficients,times)
-				#subtracts this polynomial from the median divided flux
-				poly_flux = flux-polynomial+flux_median
+			# Add intermediate step here of fitting 3rd order polynomial
+			# to remove long term periodic variations to help the phasefolds etc
+			coefficients = np.polyfit(times,flux,3,cov=False)
+			polynomial = np.polyval(coefficients,times)
+			#subtracts this polynomial from the median divided flux
+			poly_flux = flux-polynomial+flux_median
 
-				# Shift time axis back to zero
-				times -= times[0]
+			# Shift time axis back to zero
+			times -= times[0]
 
-				# Adjust Period to a phase between 0.0 and 1.0
-				phase = (times % period) / period
+			# Adjust Period to a phase between 0.0 and 1.0
+			phase = (times % period) / period
 
-				# Normalise lcurve so flux in [0.0, 1.0]
-				min_flux = np.nanmin(poly_flux)
-				normed_flux = poly_flux - min_flux
-				max_flux = np.nanmax(normed_flux)
-				normed_flux /= max_flux
+			# Normalise lcurve so flux in [0.0, 1.0]
+			min_flux = np.nanmin(poly_flux)
+			normed_flux = poly_flux - min_flux
+			max_flux = np.nanmax(normed_flux)
+			normed_flux /= max_flux
 
-				# XXX - WHY! Sort points on their phase???
-				points = [(phase[i], normed_flux[i]) for i in range(len(phase))]
-				folded_lc = [point for point in points if not np.isnan(point[1])]
-				folded_lc.sort(key=lambda x: x[0])
-				phase = [folded_lc[i][0] for i in range(len(folded_lc))]
-				normed_flux = [folded_lc[i][1] for i in range(len(folded_lc))] 
+			# XXX - WHY! Sort points on their phase???
+			points = [(phase[i], normed_flux[i]) for i in range(len(phase))]
+			folded_lc = [point for point in points if not np.isnan(point[1])]
+			folded_lc.sort(key=lambda x: x[0])
+			phase = [folded_lc[i][0] for i in range(len(folded_lc))]
+			normed_flux = [folded_lc[i][1] for i in range(len(folded_lc))] 
 
-				# Bin the lightcurve here!
+			# Bin the lightcurve here!
+			try:
 				bin_means, bin_edges, binnumber = binned_statistic(phase,
-				                                  normed_flux, 'mean', bins=n_bins)
-				bin_width = bin_edges[1] - bin_edges[0]
-				bin_centres = bin_edges[1:] - bin_width/2
-				min_bin_val = np.nanmin(bin_means)
-				min_bin_index = np.nanargmin(bin_means)
-				bin_means = np.array([bin_means[(i + min_bin_index)%n_bins] \
-				                                    for i in range(n_bins)])
-				# Rescale to bins between 0 and 1.
-				bin_means -= min_bin_val
-				bin_means_max = np.nanmax(bin_means)
-				bin_means /= bin_means_max
+			                                  normed_flux, 'mean', bins=n_bins)
+			except ValueError:
+				print("Binned Statistics Value Error: {}".format(epic))
+			bin_width = bin_edges[1] - bin_edges[0]
+			bin_centres = bin_edges[1:] - bin_width/2
+			min_bin_val = np.nanmin(bin_means)
+			min_bin_index = np.nanargmin(bin_means)
+			bin_means = np.array([bin_means[(i + min_bin_index)%n_bins] \
+			                                    for i in range(n_bins)])
+			# Rescale to bins between 0 and 1.
+			bin_means -= min_bin_val
+			bin_means_max = np.nanmax(bin_means)
+			bin_means /= bin_means_max
 
 
-				if known_campaign:
-					if (plot):
-						if star_class in star_types:
-							print("Plotting")
+			if known_campaign:
+				if (plot):
+					if star_class in star_types:
+						print("Plotting")
 
-							fig = plt.figure()
-							gs = fig.add_gridspec(4, 4)
-							ax1 = fig.add_subplot(gs[0, :])
-							# Standard K2SC lc Plot
-							ax1.plot(times, flux, linewidth=0.3)
-							# The fitted polynomial superposed
-							ax1.plot(times, polynomial, linewidth=1.5, c='m')
-							ax2 = fig.add_subplot(gs[1, :])
-							# K2SC lc - polyfit
-							ax2.plot(times, poly_flux, linewidth=0.3)
-							ax3 = fig.add_subplot(gs[2:, :2])
-							# Phase folded lightcurve
-							ax3.scatter(phase, normed_flux, s=0.2)
-							ax4 = fig.add_subplot(gs[2:, 2:])
-							# Binned Lightcure here
-							ax4.scatter(bin_centres, bin_means, s=5)
-							ax4.set_ylim([0, 1])
+						fig = plt.figure()
+						gs = fig.add_gridspec(4, 4)
+						ax1 = fig.add_subplot(gs[0, :])
+						# Standard K2SC lc Plot
+						ax1.plot(times, flux, linewidth=0.3)
+						# The fitted polynomial superposed
+						ax1.plot(times, polynomial, linewidth=1.5, c='m')
+						ax2 = fig.add_subplot(gs[1, :])
+						# K2SC lc - polyfit
+						ax2.plot(times, poly_flux, linewidth=0.3)
+						ax3 = fig.add_subplot(gs[2:, :2])
+						# Phase folded lightcurve
+						ax3.scatter(phase, normed_flux, s=0.2)
+						ax4 = fig.add_subplot(gs[2:, 2:])
+						# Binned Lightcure here
+						ax4.scatter(bin_centres, bin_means, s=5)
+						ax4.set_ylim([0, 1])
 
-							print(probability)
-							fig.suptitle("Period: %.3f Prob: %.2f" % (period, probability))
-							plot_dir = "{}/plots/phase_folds_4_way_w_probs"\
-							           .format(px402_dir)
-							plt.tight_layout()
-							plt.subplots_adjust(top=0.85)
-							#plt.show()
-							plt.savefig("{}/{}_processing_plot_{}_c{}.png"\
-							.format(plot_dir, star_class, epic_num, campaign_num))
-							plt.close()
-			else:
-				# Nonsense. Gets filtered out at SOM creation stage anyway.
-				bin_means = np.empty(n_bins) * np.nan 
+						print(probability)
+						fig.suptitle("Period: %.3f Prob: %.2f" % (period, probability))
+						plot_dir = "{}/plots/phase_folds_4_way_w_probs"\
+						           .format(px402_dir)
+						plt.tight_layout()
+						plt.subplots_adjust(top=0.85)
+						#plt.show()
+						plt.savefig("{}/{}_processing_plot_{}_c{}.png"\
+						.format(plot_dir, star_class, epic_num, campaign_num))
+						plt.close()
 
 			# ======================
 			# Option to write to CSV
@@ -187,7 +188,31 @@ def phasefold(campaign_num, detrending, process_outliers=True, write_to_csv=Fals
 
 	# Confirmation of file compeletion
 	print("{} created. It has {} entries.".format(output_file, size))
+
+	print("Filling Missing Bins for Campaign {}".format(campaign_num))
+	interpolate_df = fill_missing_bins(campaign_num, detrending, method='linear')
+	interpolate_file = "{}/phasefold_bins/{}/campaign_{}_interpolated.csv".format(project_dir, detrending, campaign_num)
+	interpolate_df.to_csv("{}".format(interpolate_file), index=False)
+
+	# Confirmation of file compeletion
+	print("{} created. It has {} entries.".format(interpolate_file, size))
+
 	return None
+
+def fill_missing_bins(campaign_num, detrending, method='linear'):
+	input_df = pd.read_csv('{}/phasefold_bins/{}/campaign_{}.csv'.format(project_dir, detrending, campaign_num))
+	epics = input_df['epic_number']
+	df = input_df.drop('epic_number', axis=1)
+	for col in df:
+		df[col] = pd.to_numeric(df[col], errors='coerce')
+	null_data = df[df.isnull().any(axis=1)]
+	print(null_data)
+	num_missing = len(null_data)
+	print("Using method: {} to interpolate missing values from {} epics".format(method, num_missing))
+	fixed_data = df.interpolate(method=method, axis=1, limit_direction='forward')
+	fixed_data['epic_number'] = epics
+	print('Interpolation Complete.')
+	return fixed_data
 
 
 # ========================================
@@ -201,12 +226,26 @@ def main():
 #	process_lcs_for_som(4, process_outliers=True, write_to_csv=True, plot=True)
 #	process_lcs_for_som(4, process_outliers=True, write_to_csv=True, plot=False)
 
-	phasefold(2, 'k2sc', process_outliers=True, write_to_csv=False, plot=True)
-	phasefold(3, 'k2sc', process_outliers=True, write_to_csv=False, plot=True)
-	phasefold(4, 'k2sc', process_outliers=True, write_to_csv=False, plot=True)
+#	phasefold(1, 'k2sc', process_outliers=True, write_to_csv=True, plot=False)
 #	phasefold(2, 'k2sc', process_outliers=True, write_to_csv=True, plot=False)
 #	phasefold(3, 'k2sc', process_outliers=True, write_to_csv=True, plot=False)
 #	phasefold(4, 'k2sc', process_outliers=True, write_to_csv=True, plot=False)
+#	phasefold(1, 'k2sc', process_outliers=True, write_to_csv=True, plot=False)
+	#phasefold(4, 'k2sc', process_outliers=True, write_to_csv=True, plot=False)
+
+#	campaign_num=4
+#	detrending='k2sc'
+#	interpolate_df = fill_missing_bins(campaign_num, detrending, method='linear')
+#	interpolate_file = "{}/phasefold_bins/{}/campaign_{}_interpolated.csv".format(project_dir, detrending, campaign_num)
+#	interpolate_df.to_csv("{}".format(interpolate_file), index=False)
+
+
+#	phasefold(5, 'k2sc', process_outliers=True, write_to_csv=True, plot=False)
+#	phasefold(6, 'k2sc', process_outliers=True, write_to_csv=True, plot=False)
+#	phasefold(7, 'k2sc', process_outliers=True, write_to_csv=True, plot=False)
+#	phasefold(8, 'k2sc', process_outliers=True, write_to_csv=True, plot=False)
+	phasefold(10, 'k2sc', process_outliers=True, write_to_csv=True, plot=False)
+
 
 if __name__ == "__main__":
 	main()
