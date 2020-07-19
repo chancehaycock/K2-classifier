@@ -7,12 +7,12 @@ def plot():
 	process_outliers = True
 	campaign_num = 3
 	epics = [206382857, 206397568, 206202136, 205982900]
-#	epics = [206032188]
+	epics = [206032188]
 
 
 
-	fig, axs = plt.subplots(2, 2, sharex=True, sharey=True)
-	#fig, axs = plt.subplots()
+#	fig, axs = plt.subplots(2, 2, sharex=True, sharey=True)
+	fig, axs = plt.subplots()
 	
 
 	periods_file = '{}/periods/k2sc/campaign_{}.csv'.format(project_dir,
@@ -88,27 +88,28 @@ def plot():
 		bin_df['x'] = np.linspace(0.0, 1.0, 64)
 		bin_df['means'] = bin_means
 
-		sbn.scatterplot(x='x', y='y', data=scatter_df, ax=axs[ii][jj], linewidth=0.0, s=1.5, palette='YlGnBu', hue='y', hue_norm=(-2, 1), legend=False)
-#		sbn.scatterplot(x='x', y='y', data=scatter_df, ax=axs, linewidth=0.0, s=3.0, palette='YlGnBu', hue='y', hue_norm=(-2, 1), legend=False)
-#		sbn.scatterplot(x='x', y='means', data=bin_df, ax=axs, s=50.0, color='k', linewidth=3.0, legend=False)
-		axs[ii][jj].set_xlabel("")
-		axs[ii][jj].set_ylabel("")
+#		sbn.scatterplot(x='x', y='y', data=scatter_df, ax=axs[ii][jj], linewidth=0.0, s=1.5, palette='YlGnBu', hue='y', hue_norm=(-2, 1), legend=False)
+		sbn.scatterplot(x='x', y='y', data=scatter_df, ax=axs, linewidth=0.0, s=3.0, palette='YlGnBu', hue='y', hue_norm=(-2, 1), legend=False)
+		sbn.scatterplot(x='x', y='means', data=bin_df, ax=axs, s=50.0, color='k', linewidth=3.0, legend=False)
+	#	axs[ii][jj].set_xlabel("")
+	#	axs[ii][jj].set_ylabel("")
 
-#		axs.set_xlabel("Phase")
-#		axs.set_ylabel("Relative Flux")
+		axs.set_xlabel("Phase")
+		axs.set_ylabel("Relative Flux")
 
 #	fig.add_subplot(111, frame_on=False)
 #	plt.tick_params(labelcolor="none", bottom=False, left=False)
 #	plt.xlabel('Phase')
 #	plt.ylabel("Relative Flux")
 
-	fig.text(0.51, 0.02, 'Phase', ha='center')
-	fig.text(0.02, 0.5, 'Relative Flux', va='center', rotation='vertical')
-	plt.subplots_adjust(wspace=0.07, hspace=0.07)
-	#plt.tight_layout()
+#	fig.text(0.51, 0.02, 'Phase', ha='center')
+#	fig.text(0.02, 0.5, 'Relative Flux', va='center', rotation='vertical')
+#	plt.subplots_adjust(wspace=0.07, hspace=0.07)
+	sbn.despine()
+	plt.tight_layout()
 #	plt.savefig("lightcurve_report_plot.eps", format='eps')
 #	plt.show()
-	plt.savefig('{}/final_report_images/example_phasefolds_more.pdf'.format(project_dir), format='pdf')
+	plt.savefig('{}/final_report_images/example_phasefoldtransparent.pdf'.format(project_dir), format='pdf', transparent=True)
 	plt.close()
 
 def main():

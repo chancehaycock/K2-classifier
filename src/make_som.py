@@ -242,14 +242,15 @@ def plot_som(map, samples_df, som_shape, save_plots, project_dir, som_ofile, n_i
 	flatui = ["#9b59b6", "#95a5a6", "#3498db", "#e74c3c", "#34495e", "#2ecc71"]
 	palette4 = sbn.color_palette(flatui)
 
-	fig, ax = plt.subplots()#figsize=(10, 1.5))
+	fig, ax = plt.subplots()
 #	ax.set_yticklabels([])
 #	ax.set_yticks([])
 
+	sbn.set_context('poster')
 	markers = ['v', 'X', 'o', 'p', 'd', '^']
 	sbn.scatterplot(x='float_x', y='float_y', palette=palette4, style='class',
 	                    linewidth=0.75,  hue='class', sizes=[30 + 7, 15 + 7, 20 + 7, 25 + 7, 35 + 7, 30 + 7], size='class',
-	                    alpha=1.0, data=som_plot_df, legend='brief', markers=markers)
+	                    alpha=1.0, data=som_plot_df, legend=None, markers=markers)
 
 	som_classes = ['RRab', 'EA', 'EB', 'PULS']
 	clusters_df = pd.DataFrame(columns=['Class', 'x', 'y'])
@@ -276,7 +277,7 @@ def plot_som(map, samples_df, som_shape, save_plots, project_dir, som_ofile, n_i
 		#plt.savefig("{}/plots/som_plots/{}/som_{}.eps".format(project_dir, som_ofile, n_iter), format='eps')
 		#som_plot_df.to_csv("{}/plots/som_plots/{}/som_plot_data_{}.csv".format(project_dir, som_ofile, n_iter), index=False)
 	#	plt.savefig("{}/som_statistics/k2sc/{}/som_{}D_report.pdf".format(project_dir, som_ofile, dimension), format='pdf')
-		plt.savefig("{}/final_report_images/som_{}D.pdf".format(project_dir, dimension), format='pdf')
+		plt.savefig("{}/final_report_images/som_{}D_transparent.pdf".format(project_dir, dimension), format='pdf', transparent=True)
 	#	som_plot_df.to_csv("{}/som_statistics/k2sc/{}/som_plot_data_{}D_report.csv".format(project_dir, som_ofile, dimension), index=False)
 #		som_plot_df.to_csv("{}/final_report_images/som_plot_data_{}D_report.csv".format(project_dir, som_ofile, dimension), index=False)
 #	plt.close()

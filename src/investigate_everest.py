@@ -186,12 +186,13 @@ def k2sc_outlier_poly():
 	#subtracts this polynomial from the median divided flux
 	poly_flux = k2sc_flux2-polynomial + 1
 
-	fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, gridspec_kw={'hspace': 0.15}, figsize=(10, 5))
+#	fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, gridspec_kw={'hspace': 0.15}, figsize=(7, 5))
+	fig, ax2 = plt.subplots(1, 1, sharex=True, gridspec_kw={'hspace': 0.15}, figsize=(7, 5))
 
-	ax1.scatter(k2sc_times1, k2sc_flux1, s=0.35, label='K2SC Detrended Lightcurve', color='black')
+#	ax1.scatter(k2sc_times1, k2sc_flux1, s=0.35, label='K2SC Detrended Lightcurve', color='black')
 	ax2.scatter(k2sc_times2, k2sc_flux2, s=0.35, color='black')
 	ax2.plot(k2sc_times2, polynomial, linewidth=2.5, label='3rd Order Polynomial', color='red', alpha=0.55)
-	ax3.scatter(k2sc_times2, poly_flux, s=0.35, label='Final Lightcurve', color='black')
+#	ax3.scatter(k2sc_times2, poly_flux, s=0.35, label='Final Lightcurve', color='black')
 
 	print(len(k2sc_flux1))
 	print(len(k2sc_flux2))
@@ -210,24 +211,25 @@ def k2sc_outlier_poly():
 
 
 
-	
+	sbn.despine()
 	#ax1.set_ylabel('K2SC Relative Flux')
 	ax2.set_ylabel('Relative Flux')
 	#ax3.set_ylabel('EVEREST Relative Flux')
-	ax3.set_xlabel("Time (BJD - 2454833)")
-	ax3.yaxis.set_major_formatter(FormatStrFormatter('%1.3f'))
+#	ax3.set_xlabel("Time (BJD - 2454833)")
+	ax2.set_xlabel("Time (BJD - 2454833)")
+#	ax3.yaxis.set_major_formatter(FormatStrFormatter('%1.3f'))
 
 	#ax1.legend(loc='lower right')
 	#ax2.legend(loc='lower right')
 	#ax3.legend(loc='lower right')
 
-	ax1.set_ylim([0.95, 1.05])
+#	ax1.set_ylim([0.95, 1.05])
 	ax2.set_ylim([0.95, 1.05])
-	ax3.set_ylim([0.95, 1.05])
+#	ax3.set_ylim([0.95, 1.05])
 
 	plt.tight_layout()
 #	plt.show()
-	plt.savefig('{}/final_report_images/k2sc_outlier_long.pdf'.format(project_dir), format='pdf')
+	plt.savefig('{}/final_report_images/k2sc_outlier_long_transparent_single.pdf'.format(project_dir), format='pdf', transparent=True)
 	plt.close()
 
 

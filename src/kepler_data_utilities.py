@@ -81,6 +81,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sbn
 sbn.set(style="ticks", palette="muted", color_codes=True)
+sbn.set_context("talk")
 import os                                                                       
 import sys
 

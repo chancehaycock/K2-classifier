@@ -65,7 +65,7 @@ def plot_period_correlation(detrending='k2sc'):
 	return
 
 def plot_it():
-	period_plot_df = pd.read_csv('period_plot.csv')
+	period_plot_df = pd.read_csv('periods/period_plot.csv')
 	print(period_plot_df)
 	period_plot_df = period_plot_df[period_plot_df['class'] != ' Noise']
 #	period_plot_df = period_plot_df[period_plot_df['class'] != 'OTHPER']
@@ -109,9 +109,10 @@ def plot_it():
 #	ax6.set(xlim=(0, 20), ylim=(0, 20))
 #	ax6.legend()
 
+	sbn.despine()
 	plt.tight_layout()
 #	plt.show()
-	plt.savefig("{}/final_report_images/period_correlation.pdf".format(project_dir), format='pdf')
+	plt.savefig("{}/final_report_images/period_correlation_2.pdf".format(project_dir), format='pdf', transparent=True)
 	plt.close()
 
 #	plt.scatter(*zip(*points[' Noise']), s=0.5, label="Noise only")

@@ -179,7 +179,7 @@ def feature_distribution(stars_df, classes, test_df):
 	features = test_df.columns
 	features = ['Period_1', 'lc_amplitude', 'skew']
 	prob_threshold = 0.85
-	for feature in features[2:3]:
+	for feature in features[0:1]:
 		#f, axes = plt.subplots(2, 3, sharex=False, figsize=(10, 4))
 		f, axes = plt.subplots(2, 3, sharex=False, figsize=(10, 4), gridspec_kw={'hspace':0.3, 'wspace':0.2} )
 	#	f, axes = plt.subplots()
@@ -191,7 +191,8 @@ def feature_distribution(stars_df, classes, test_df):
 			candidates = best_stars_df[best_stars_df['Class'] == star_class]['epic_number'].to_numpy()
 			vals = test_df[test_df['epic_number'].isin(candidates)][feature]
 			print(vals)
-			sbn.distplot(vals, kde=False, color='g', ax=axes[x, y], label=star_class, axlabel=False) 
+			sbn.distplot(vals, kde=False, color='b', ax=axes[x, y], label=star_class, axlabel=False) 
+			sbn.despine()
 			#axes[x, y].set_xlabel('{}'.format(feature_axis_labels[feature]))
 			#axes[x, y].set_ylabel('Count')
 			axes[x, y].set_xlabel("")
@@ -212,8 +213,8 @@ def feature_distribution(stars_df, classes, test_df):
 		plt.ylabel("Count")
 		plt.tight_layout()
 #		plt.show()
-		plt.savefig('{}/final_report_images/{}_{}.pdf'\
-		           .format(project_dir, feature, prob_threshold), format='pdf')
+		plt.savefig('{}/final_report_images/{}_{}_transparent.pdf'\
+		           .format(project_dir, feature, prob_threshold), format='pdf', transparent=True)
 		plt.close()
 
 def average_train_probabilities():
@@ -492,6 +493,7 @@ def training_set_composition(train_df):
 
 def plot_CM():
 
+	plt.subplots(figsize=(15,12))
 	cmlabels = ['DSCUT', 'EA', 'EB', 'GDOR', 'Noise', 'OTHPER', 'RRab']
 
 	data = [[0.957, 0.,    0.031, 0.006, 0.006, 0.,    0.   ],
@@ -502,7 +504,7 @@ def plot_CM():
 	        [0.002, 0.,    0.008, 0.012, 0.26,  0.718, 0.   ],
 	        [0.,    0.,    0.,    0.,    0.,    0.,    1.]]   
 
-	sbn.heatmap(data, annot=True, linewidths=.75, cmap="YlGnBu",
+	sbn.heatmap(data, annot=True, linewidths=.75, cmap="GnBu",
 	            xticklabels=cmlabels, yticklabels=cmlabels, fmt=".3f",
 	            center=0.5, vmin=0, vmax=1, cbar_kws={'label': 'Proportion of Correct Classifications'})
 	plt.yticks(rotation=0)
@@ -510,7 +512,7 @@ def plot_CM():
 	plt.ylabel("True Classes")
 	plt.tight_layout()
 	plt.savefig('{}/final_report_images/CM.png'.format(project_dir), format='png')
-	plt.savefig('{}/final_report_images/CM.pdf'.format(project_dir), format='pdf')
+	plt.savefig('{}/final_report_images/CM_transparent_2.pdf'.format(project_dir), format='pdf', transparent=True)
 	plt.close()
 	
 
@@ -532,23 +534,22 @@ def plot_fimp(test_df):
 
 
 	# XXX - RF 2D
-#	fimps = [0.153, 0.085, 0.021, 0.021, 0.013, 0.014, 0.012, 0.042, 0.039, 0.007, 0.053, 0.056,
-#	         0.086, 0.061, 0.052, 0.04, 0.018, 0.067, 0.059, 0.034, 0.04, 0.027]
+	fimps = [0.153, 0.085, 0.021, 0.021, 0.013, 0.014, 0.012, 0.042, 0.039, 0.007, 0.053, 0.056,
+	         0.086, 0.061, 0.052, 0.04, 0.018, 0.067, 0.059, 0.034, 0.04, 0.027]
 
-#	fimp_devs = [0.002, 0.004, 0.001, 0.001, 0.00, 0.001, 0.001, 0.002, 0.002, 0.00, 0.002, 0.003,
-#	             0.003, 0.002, 0.003, 0.002, 0.001, 0.003, 0.003, 0.002, 0.002, 0.001]
+	fimp_devs = [0.002, 0.004, 0.001, 0.001, 0.00, 0.001, 0.001, 0.002, 0.002, 0.00, 0.002, 0.003,
+	             0.003, 0.002, 0.003, 0.002, 0.001, 0.003, 0.003, 0.002, 0.002, 0.001]
 
 	# XXX - GB 1D
-	fimps = [0.186, 0.099, 0.021, 0.02, 0.011, 0.018, 0.011, 0.055, 0.051, 0.003, 0.063, 0.073,
-	         0.058, 0.039, 0.038, 0.082, 0.027, 0.088, 0.06]
+#	fimps = [0.186, 0.099, 0.021, 0.02, 0.011, 0.018, 0.011, 0.055, 0.051, 0.003, 0.063, 0.073,
+#	         0.058, 0.039, 0.038, 0.082, 0.027, 0.088, 0.06]
 
-	fimp_devs = [0.004, 0.002, 0.002, 0.002, 0.002, 0.001, 0.002, 0.005, 0.002, 0.001, 0.002, 0.003,
-	             0.003, 0.007, 0.004, 0.005, 0.003, 0.013, 0.002]
-
-
+#	fimp_devs = [0.004, 0.002, 0.002, 0.002, 0.002, 0.001, 0.002, 0.005, 0.002, 0.001, 0.002, 0.003,
+#	             0.003, 0.007, 0.004, 0.005, 0.003, 0.013, 0.002]
 
 
-	sbn.set(style="whitegrid")
+
+	#sbn.set(style="whitegrid")
 
 	#sbn.set_context("paper")
 	test_df = test_df.drop('DJA_Class', axis=1).drop('class', axis=1).drop('probability', axis=1)
@@ -570,20 +571,21 @@ def plot_fimp(test_df):
 	f, ax = plt.subplots(figsize=(8, 4))
 
 	sbn.set_color_codes("muted")
-#	sbn.barplot(x='Score', y='Feature', data=fimp_df, color='b', label='Average', palette="YlGnBu_r", xerr=fimp_df['Dev'], error_kw={'elinewidth':1.5})
-	sbn.barplot(x='Score', y='Feature', data=fimp_df, color='b', label='Average', palette="YlOrBr_r", xerr=fimp_df['Dev'], error_kw={'elinewidth':1.5})
-	ax.set_yticklabels(ax.get_yticklabels(), rotation=45)
+	sbn.barplot(x='Score', y='Feature', data=fimp_df, color='b', label='Average', palette="GnBu_r", xerr=fimp_df['Dev'], error_kw={'elinewidth':1.5})
+#	sbn.barplot(x='Score', y='Feature', data=fimp_df, color='b', label='Average', palette="YlOrBr_r", xerr=fimp_df['Dev'], error_kw={'elinewidth':1.5})
+#	ax.set_yticklabels(ax.get_yticklabels(), rotation=45)
+	sbn.despine()
 
-	ax.set(xlim=(0, 0.195), ylabel="",
-      xlabel="Relative GB Importance")
-#	ax.set(xlim=(0, 0.17), ylabel="",
- #      xlabel="Relative RF Importance")
+#	ax.set(xlim=(0, 0.195), ylabel="",
+ #     xlabel="Relative GB Importance")
+	ax.set(xlim=(0, 0.17), ylabel="",
+       xlabel="Relative RF Importance")
 
 	plt.tight_layout()
 #	plt.show()
 
-	plt.savefig('{}/final_report_images/fimp_GB.png'.format(project_dir), format='png')
-	plt.savefig('{}/final_report_images/fimp_GB.pdf'.format(project_dir), format='pdf')
+#	plt.savefig('{}/final_report_images/fimp_GB.png'.format(project_dir), format='png')
+	plt.savefig('{}/final_report_images/fimp_RF_transparent_2.pdf'.format(project_dir), format='pdf', transparent=True)
 	plt.close()
 
 
@@ -664,19 +666,19 @@ def training_full_HR_diagram(gaia_train, gaia_all):
 
 def results():
 	total_df = pd.read_csv('{}/src/models/{}_{}/unknown_predictions_{}.csv'.format(project_dir, model_name, training_set, model_number))
-	c5_stars_file = open('{}/c5_stars.txt'.format(project_dir), 'r')
+	c5_stars_file = open('{}/known/c5_stars.txt'.format(project_dir), 'r')
 	c5_stars = c5_stars_file.read().splitlines()
 	c5_stars_file.close()
-	c6_stars_file = open('{}/c6_stars.txt'.format(project_dir), 'r')
+	c6_stars_file = open('{}/known/c6_stars.txt'.format(project_dir), 'r')
 	c6_stars = c6_stars_file.read().splitlines()
 	c6_stars_file.close()
-	c7_stars_file = open('{}/c7_stars.txt'.format(project_dir), 'r')
+	c7_stars_file = open('{}/known/c7_stars.txt'.format(project_dir), 'r')
 	c7_stars = c7_stars_file.read().splitlines()
 	c7_stars_file.close()
-	c8_stars_file = open('{}/c8_stars.txt'.format(project_dir), 'r')
+	c8_stars_file = open('{}/known/c8_stars.txt'.format(project_dir), 'r')
 	c8_stars = c8_stars_file.read().splitlines()
 	c8_stars_file.close()
-	c10_stars_file = open('{}/c10_stars.txt'.format(project_dir), 'r')
+	c10_stars_file = open('{}/known/c10_stars.txt'.format(project_dir), 'r')
 	c10_stars = c10_stars_file.read().splitlines()
 	c10_stars_file.close()
 	stars = np.concatenate((c5_stars, c6_stars, c7_stars, c8_stars, c10_stars))
@@ -685,13 +687,13 @@ def results():
 	classes = ['RRab', 'EA', 'EB', 'GDOR', 'DSCUT']
 	test_df = pd.read_csv('{}/src/models/{}_{}/test.csv'.format(project_dir, model_name, training_set))
 
-	rrab_candidates = stars_df[stars_df['Class'] == 'RRab'] 
-	ea_candidates = stars_df[stars_df['Class'] == 'EA'] 
-	eb_candidates = stars_df[stars_df['Class'] == 'EB'] 
-	gdor_candidates = stars_df[stars_df['Class'] == 'GDOR'] 
-	dscut_candidates = stars_df[stars_df['Class'] == 'DSCUT'] 
-	noise_candidates = stars_df[stars_df['Class'] == 'Noise']
-	othper_candidates = stars_df[stars_df['Class'] == 'OTHPER']
+#	rrab_candidates = stars_df[stars_df['Class'] == 'RRab'] 
+#	ea_candidates = stars_df[stars_df['Class'] == 'EA'] 
+#	eb_candidates = stars_df[stars_df['Class'] == 'EB'] 
+#	gdor_candidates = stars_df[stars_df['Class'] == 'GDOR'] 
+#	dscut_candidates = stars_df[stars_df['Class'] == 'DSCUT'] 
+#	noise_candidates = stars_df[stars_df['Class'] == 'Noise']
+#	othper_candidates = stars_df[stars_df['Class'] == 'OTHPER']
 
 
 	# Probability Distributions
@@ -721,16 +723,18 @@ def results():
 #	gaia_all = get_all_GAIA_data()
 #	HR_diagram(gaia_all)
 
-	test_df = pd.read_csv('{}/src/models/som1D_and_gb_delta/train.csv'.format(project_dir))
-	plot_fimp(test_df)
+#	test_df = pd.read_csv('{}/src/models/som_and_rf_delta/train.csv'.format(project_dir))
+#	ax3.set_xlabel("Time (BJD - 2454833)")
+
+#	plot_fimp(test_df)
 
 #	get_stars_and_gaia_composition()
-	training_feature_distribution()
+#	training_feature_distribution()
 
 #	average_train_probabilities()
 #	training_full_HR_diagram(gaia_train, gaia_all)
 
-#	plot_CM()
+	plot_CM()
 
 
 
