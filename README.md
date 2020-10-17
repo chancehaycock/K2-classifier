@@ -2,7 +2,7 @@
 
 A Machine Learning classification model for targets observed by NASA's K2 mission.
 
-The variable star classes used here are RR Lyrae, Eclipsing Binaries (Detatched 7 Semi-detached), Gamma-Dor and Delta Scuti.
+The variable star classes used here are RR Lyrae, Eclipsing Binaries (detached & semi-detached), Gamma-Dor and Delta Scuti.
 
 Classification model built using self-organising maps and random forests.
 
